@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vite + React + TS</title>
+    <script
+      type="module"
+      src="https://cdn.jsdelivr.net/npm/@myriaddreamin/typst.ts/dist/esm/contrib/all-in-one-lite.bundle.js"
+      id="typst"
+    ></script>
+  </head>
+  <body>
+    <!-- <div id="root"></div> -->
+    <textarea id="input" style="width: 100%"></textarea>
+    <div id="content" style="background-color: white"></div>
+    <script type="module" src="/src/main.tsx"></script>
+    <script>
+      document.getElementById("typst").addEventListener("load", function () {
+        console.log("typst loaded", $typst);
+        $typst.setCompilerInitOptions({
+          getModule: () =>
+            "https://cdn.jsdelivr.net/npm/@myriaddreamin/typst-ts-web-compiler/pkg/typst_ts_web_compiler_bg.wasm",
+        });
+        $typst.setRendererInitOptions({
+          getModule: () =>
+            "https://cdn.jsdelivr.net/npm/@myriaddreamin/typst-ts-renderer/pkg/typst_ts_renderer_bg.wasm",
+        });
+
+        const compile = function (mainContent) {
+          $typst.svg({ mainContent }).then((svg) => {
+            console.log(`rendered! SvgElement { len: ${svg.length} }`);
+            // append svg text
+            document.getElementById("content").innerHTML = svg;
+          });
+        };
+
+        const compileToPDf = function (mainContent) {
+          return $typst.pdf({ mainContent }).then((pdf) => {
+            console.log(pdf);
+            const pdfBlob = new Blob([pdf], { type: "application/pdf" });
+            const a = document.createElement("a");
+            a.href = URL.createObjectURL(pdfBlob);
+            a.download = "typst.pdf";
+            a.click();
+            return pdf;
+          });
+        };
+        document.getElementById("input").oninput = () => compile(document.getElementById("input").value);
+        compile(document.getElementById("input").value);
+      });
+    </script>
+  </body>
+</html>
