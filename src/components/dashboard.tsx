@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { BrainCog, Download } from "lucide-react";
+import { BrainCog } from "lucide-react";
 import { useAtom } from "jotai";
 import { userAtom } from "@/lib/atoms";
 import ChatInterface from "@/components/chat-interface";
@@ -23,11 +23,6 @@ export default function Dashboard() {
   const [userSheetOpen, setUserSheetOpen] = useState(false);
   const [llmSheetOpen, setLlmSheetOpen] = useState(false);
 
-  const handleExportPDF = () => {
-    // In a real app, this would use a library like jsPDF or react-pdf
-    alert("Exporting resume as PDF...");
-  };
-
   const getInitials = (name: string) => {
     return name
       .split(" ")
@@ -45,7 +40,7 @@ export default function Dashboard() {
           <div className="flex items-center justify-between p-4 border-b border-border">
             <div className="flex items-center gap-2">
               <Tooltip>
-                <TooltipTrigger>
+                <TooltipTrigger asChild>
                   <Button
                     variant="ghost"
                     size="icon"
@@ -65,7 +60,7 @@ export default function Dashboard() {
                 <TooltipContent>Edit User Profile</TooltipContent>
               </Tooltip>
               <Tooltip>
-                <TooltipTrigger>
+                <TooltipTrigger asChild>
                   <Button
                     variant="outline"
                     size="icon"
@@ -83,15 +78,8 @@ export default function Dashboard() {
           <ChatInterface />
         </div>
         {/* Right side - Resume Preview */}
-        <div className="relative w-1/2 bg-dark-300">
+        <div className="w-1/2 bg-dark-300">
           <ResumePreview />
-          {/* Export button */}
-          <div className="absolute top-4 right-7">
-            <Button onClick={handleExportPDF} variant="default" size="sm">
-              <Download className="h-4 w-4 mr-2" />
-              Export PDF
-            </Button>
-          </div>
         </div>
         {/* Sheets */}
         <UserProfileSheet

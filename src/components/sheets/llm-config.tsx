@@ -22,7 +22,7 @@ export default function LLMConfigSheet({ open, onOpenChange }: LLMConfigSheetPro
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="w-[400px] sm:w-[540px] bg-dark-100 border-zinc-800">
+      <SheetContent side="left" className="w-[400px] sm:w-[540px] bg-dark-100 border-zinc-800">
         <SheetHeader className="p-6">
           <SheetTitle className="text-4xl">LLM Settings</SheetTitle>
         </SheetHeader>

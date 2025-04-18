@@ -1,4 +1,6 @@
 import { atom } from "jotai"
+import { TypstDocument } from "./typst"
+import { sampleResumeContent } from "./content"
 
 // User profile atom
 export type UserProfile = {
@@ -91,3 +93,6 @@ export const llmConfigAtom = atom<LLMConfig>({
   streaming: true,
   includeResumeContext: true,
 })
+
+
+export const documentAtom = atom<TypstDocument>(new TypstDocument(sampleResumeContent))
