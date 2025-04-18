@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetFooter } from "@/components/ui/sheet"
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter } from "@/components/ui/sheet"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { PlusCircle, X } from "lucide-react"
@@ -87,15 +87,14 @@ export default function UserProfileSheet({ open, onOpenChange }: UserProfileShee
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="left" className="w-[400px] sm:w-[540px] bg-dark-100 border-zinc-800">
-        <SheetHeader>
-          <SheetTitle>Personal Information</SheetTitle>
-          <SheetDescription>Update your personal details for your resume</SheetDescription>
+        <SheetHeader className="p-6">
+          <SheetTitle className="text-4xl">Personal Info</SheetTitle>
         </SheetHeader>
 
         <ScrollArea className="h-[calc(100vh-180px)] px-4">
           <div className="space-y-6">
             {/* Avatar */}
-            <div className="flex flex-col items-center gap-2">
+            <div className="flex flex-col items-start gap-2">
               <Avatar className="h-24 w-24">
                 <AvatarImage src={userProfile.avatarUrl || "/placeholder.svg"} />
                 <AvatarFallback className="text-2xl">
