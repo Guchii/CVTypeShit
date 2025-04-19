@@ -3,8 +3,8 @@ import type React from "react";
 import { useState, useRef, useEffect } from "react";
 import { CornerDownLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useAtom } from "jotai";
-import { userAtom, llmConfigAtom } from "@/lib/atoms";
+import { useAtom, useSetAtom } from "jotai";
+import { userAtom, llmConfigAtom, userSheetOpenAtom } from "@/lib/atoms";
 import { ChatInput } from "./ui/chat/chat-input";
 import { ChatMessageList } from "./ui/chat/chat-message-list";
 import Markdown from "react-markdown";
@@ -136,21 +136,36 @@ export default function ChatInterface() {
     setMessages((prev) => [...prev, userMessage]);
   };
 
+  const setUserSheetOpen = useSetAtom(userSheetOpenAtom);
+
   return (
     <div className="flex flex-col h-[calc(100vh-4rem)] bg-dark-100">
       <div className="flex-1 overflow-y-auto p-2">
         <ChatMessageList>
           {messages.length === 0 && (
-            <div className="w-full bg-background shadow-sm border rounded-lg p-8 flex flex-col gap-2">
-              <h1 className="font-bold">Welcome to Resume Builder.</h1>
-              <p className="text-muted-foreground text-sm">
-                This is a very simple app that uses Vercel AI SDK, Typst WASM
-                Build to generate and tweak resumes;
-              </p>
-              <p className="text-muted-foreground text-sm">
-                Make sure to also checkout the shadcn-chat support component at
-                the bottom right corner.
-              </p>
+            <div className="w-full bg-background shadow-md border rounded-lg flex flex-col overflow-hidden">
+              <h1 className="font-bold bg-dark-accent text-background text-4xl md:text-5xl p-6 leading-tight">
+                Resume Builder
+              </h1>
+              <div className="p-6 text-white text-base">
+                <p className="text-lg font-medium mb-2">
+                  Build a sick resume in minutes!
+                </p>
+                <p className="mb-4">
+                  1. We have just a single no BS ATS Friendly template
+                  <br />
+                  2. Tell the assistant about yourself or paste a JD or{" "}
+                  <span
+                    onClick={() => setUserSheetOpen(true)}
+                    className="underline cursor-pointer"
+                  >
+                    populate the resume data yourself
+                  </span>
+                  <br />
+                  3. Click on the export pdf button on the top right to download
+                  your resume
+                </p>
+              </div>
             </div>
           )}
           {messages.map((message) => (

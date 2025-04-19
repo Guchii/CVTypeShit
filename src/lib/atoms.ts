@@ -96,3 +96,6 @@ export const llmConfigAtom = atom<LLMConfig>({
 
 
 export const documentAtom = atom<TypstDocument>(new TypstDocument(sampleResumeContent))
+
+export const userSheetOpenAtom = atom(false)
+export const llmSheetOpenAtom = atom(false)

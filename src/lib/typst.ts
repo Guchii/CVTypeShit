@@ -1,4 +1,5 @@
 import { $typst } from "@myriaddreamin/typst.ts/dist/esm/contrib/snippet.mjs";
+import { sampleUserConfig } from "./content";
 
 $typst.setCompilerInitOptions({
   getModule: () =>
@@ -17,6 +18,7 @@ export class TypstDocument {
   constructor(document: string) {
     this.typst = $typst;
     this.document = document;
+    this.typst.mapShadow("/template.yml", new TextEncoder().encode(sampleUserConfig));
   }
 
   async downloadDocument(): Promise<void> {
