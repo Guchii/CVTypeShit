@@ -1,28 +1,30 @@
-import { atom } from "jotai"
-import { TypstDocument } from "./typst"
-import { sampleResumeContent } from "./content"
+import { atom } from "jotai";
+import { atomWithStorage } from "jotai/utils";
+import { TypstDocument } from "./typst";
+import { sampleResumeContent } from "./content";
+import { openAIHandler } from "./llm";
 
 // User profile atom
 export type UserProfile = {
-  name: string
-  email: string
-  phone: string
-  location: string
-  summary: string
-  avatarUrl: string
+  name: string;
+  email: string;
+  phone: string;
+  location: string;
+  summary: string;
+  avatarUrl: string;
   experience: {
-    title: string
-    company: string
-    period: string
-    description: string
-  }[]
+    title: string;
+    company: string;
+    period: string;
+    description: string;
+  }[];
   education: {
-    degree: string
-    institution: string
-    period: string
-  }[]
-  skills: string[]
-}
+    degree: string;
+    institution: string;
+    period: string;
+  }[];
+  skills: string[];
+};
 
 export const userAtom = atom<UserProfile>({
   name: "John Doe",
@@ -72,30 +74,69 @@ export const userAtom = atom<UserProfile>({
     "AWS",
     "Agile Methodologies",
   ],
-})
+});
+
+export type LLMProvider = "openai" | "openai-like";
 
 // LLM configuration atom
 export type LLMConfig = {
-  provider: string
-  model: string
-  apiKey: string
-  endpoint?: string
-  temperature: number
-  streaming: boolean
-  includeResumeContext: boolean
-}
+  provider: LLMProvider;
+  model?: string;
+  apiKey?: string;
+  endpoint?: string;
+  temperature: number;
+};
 
-export const llmConfigAtom = atom<LLMConfig>({
-  provider: "OpenAI",
-  model: "gpt-4o",
+export const llmConfigAtom = atomWithStorage<Record<LLMProvider, LLMConfig>>("llm-config", {
+  'openai-like': {
+  provider: "openai-like",
+  model: "openai",
+  endpoint: "https://text.pollinations.ai/openai",
   apiKey: "",
   temperature: 0.7,
-  streaming: true,
-  includeResumeContext: true,
+},
+  openai: {
+    provider: "openai",
+    model: "gpt-3.5-turbo",
+    apiKey: import.meta.env.VITE_OPENAI_KEY as string,
+    endpoint: "https://api.openai.com/v1/chat/completions",
+    temperature: 0.7,
+  },
+});
+
+export const activeLLMProviderAtom = atom<LLMProvider>("openai-like");
+
+export const activeLLMConfigAtom = atom(get => {
+  const activeProvider = get(activeLLMProviderAtom);
+  return get(llmConfigAtom)[activeProvider];
+}, (get, set, args: Partial<LLMConfig>) => {
+  const activeProvider = get(activeLLMProviderAtom);
+  const llmConfig = get(llmConfigAtom)[activeProvider];
+  set(llmConfigAtom, {
+    ...get(llmConfigAtom),
+    [activeProvider]: {
+      ...llmConfig,
+      ...args
+    },
+  });
 })
 
+export const llmHandlerAtom = atom((get) => {
+  const activeProvider = get(activeLLMProviderAtom);
+  const llmConfig = get(llmConfigAtom)[activeProvider];
+  return new openAIHandler(
+    llmConfig.apiKey ?? "",
+    llmConfig.endpoint ?? "",
+    llmConfig.temperature ?? "",
+    llmConfig.model ?? ""
+  );
+});
 
-export const documentAtom = atom<TypstDocument>(new TypstDocument(sampleResumeContent))
+// Active Document State
+export const documentAtom = atom<TypstDocument>(
+  new TypstDocument(sampleResumeContent)
+);
 
-export const userSheetOpenAtom = atom(false)
-export const llmSheetOpenAtom = atom(false)
+// Sheets State
+export const userSheetOpenAtom = atom(false);
+export const llmSheetOpenAtom = atom(false);

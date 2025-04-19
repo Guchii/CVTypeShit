@@ -7,16 +7,17 @@ interface ApiHandler {
   ): StreamTextResult<ToolSet, unknown>;
 }
 
-export class OpenRouterHandler implements ApiHandler {
+export class openAIHandler implements ApiHandler {
   client: OpenAIProvider;
   constructor(
     private apiKey: string,
+    private baseURL: string = "https://openrouter.ai/api/v1/",
     private temperature: number = 0.7,
-    private model: string = "google/gemma-2-9b-it:free"
+    private model: string = "google/gemma-2-9b-it:free",
   ) {
     this.client = createOpenAI({
       apiKey: this.apiKey,
-      baseURL: "https://openrouter.ai/api/v1/",
+      baseURL: this.baseURL,
     });
   }
 
@@ -31,6 +32,6 @@ export class OpenRouterHandler implements ApiHandler {
   }
 }
 
-export const openRouterHandler = new OpenRouterHandler(
+export const openRouterHandler = new openAIHandler(
   import.meta.env.VITE_OPENROUTER_KEY as string,
 );

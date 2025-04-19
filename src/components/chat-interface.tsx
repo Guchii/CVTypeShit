@@ -3,8 +3,8 @@ import type React from "react";
 import { useState, useRef, useEffect } from "react";
 import { CornerDownLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useAtom, useSetAtom } from "jotai";
-import { userAtom, llmConfigAtom, userSheetOpenAtom } from "@/lib/atoms";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
+import { userAtom, userSheetOpenAtom, llmHandlerAtom, activeLLMConfigAtom } from "@/lib/atoms";
 import { ChatInput } from "./ui/chat/chat-input";
 import { ChatMessageList } from "./ui/chat/chat-message-list";
 import Markdown from "react-markdown";
@@ -15,7 +15,6 @@ import {
   ChatBubbleAvatar,
   ChatBubbleMessage,
 } from "./ui/chat/chat-bubble";
-import { openRouterHandler } from "@/lib/llm";
 
 type Message = {
   id: string;
@@ -29,7 +28,8 @@ export default function ChatInterface() {
 
   const [input, setInput] = useState("");
   const [userProfile] = useAtom(userAtom);
-  const [llmConfig] = useAtom(llmConfigAtom);
+  const llmConfig = useAtomValue(activeLLMConfigAtom);
+  const llmHandler = useAtomValue(llmHandlerAtom);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -59,7 +59,7 @@ export default function ChatInterface() {
           ...prev,
           status: "loading",
         }));
-        const result = openRouterHandler.generateStream({
+        const result = llmHandler.generateStream({
           messages,
           onFinish: (e) => {
             setInput("");
@@ -93,6 +93,11 @@ export default function ChatInterface() {
             }
             case "reasoning": {
               // handle reasoning here
+              setLastAIMessage((prev) => ({
+                ...prev,
+                content: prev.content + part.textDelta,
+                status: "streaming",
+              }));
               break;
             }
             case "source": {
