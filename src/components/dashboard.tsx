@@ -1,7 +1,7 @@
 "use client";
 
-import { BrainCog, DatabaseZap } from "lucide-react";
-import ChatInterface from "@/components/chat-interface";
+import { BrainCog, DatabaseZap, LucideRefreshCcw } from "lucide-react";
+import ChatInterface, { resetMessagesAtom } from "@/components/chat-interface";
 import ResumePreview from "@/components/resume-preview";
 import UserProfileSheet from "@/components/sheets/user-profile";
 import LLMConfigSheet from "@/components/sheets/llm-config";
@@ -12,13 +12,25 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "./ui/tooltip";
-import { useAtom } from "jotai";
+import { atom, useAtom, useSetAtom } from "jotai";
 import { llmSheetOpenAtom, userSheetOpenAtom } from "@/lib/atoms";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+
+const resetMessagesAlertAtom = atom(false);
 
 export default function Dashboard() {
-
   const [userSheetOpen, setUserSheetOpen] = useAtom(userSheetOpenAtom);
   const [llmSheetOpen, setLlmSheetOpen] = useAtom(llmSheetOpenAtom);
+  const setResetMessagesAlert = useSetAtom(resetMessagesAlertAtom);
 
   return (
     <TooltipProvider>
@@ -50,6 +62,14 @@ export default function Dashboard() {
                 </TooltipTrigger>
                 <TooltipContent>LLM Settings</TooltipContent>
               </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button onClick={() => setResetMessagesAlert(true)} variant="outline" size="icon">
+                    <LucideRefreshCcw className="h-5 w-5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Start Over</TooltipContent>
+              </Tooltip>
             </div>
           </div>
           {/* Chat Interface */}
@@ -66,6 +86,32 @@ export default function Dashboard() {
         />
         <LLMConfigSheet open={llmSheetOpen} onOpenChange={setLlmSheetOpen} />
       </div>
+      <ResetAlertDialog />
     </TooltipProvider>
+  );
+}
+
+const ResetAlertDialog = () => {
+  const resetMessages = useSetAtom(resetMessagesAtom);
+  const [resetMessagesAlert, setResetMessagesAlert] = useAtom(resetMessagesAlertAtom);
+
+  return (
+    <AlertDialog open={resetMessagesAlert} onOpenChange={setResetMessagesAlert}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+          <AlertDialogDescription>
+            This action cannot be undone. This will permanently delete your
+            progress
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogAction onClick={() => resetMessages()}>
+            Continue
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 }

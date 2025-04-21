@@ -4,7 +4,6 @@ import {
   activeLLMProviderAtom,
   LLMProvider,
 } from "@/lib/atoms";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -12,7 +11,6 @@ import {
   SheetContent,
   SheetHeader,
   SheetTitle,
-  SheetFooter,
 } from "@/components/ui/sheet";
 import {
   Select,
@@ -35,12 +33,6 @@ export default function LLMConfigSheet({
   const [activeProvider, setActiveProvider] = useAtom(activeLLMProviderAtom);
   const [llmConfig, setLlmConfig] = useAtom(activeLLMConfigAtom);
 
-  const handleSave = () => {
-    onOpenChange(false);
-  };
-
-  console.log(llmConfig)
-
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
@@ -62,8 +54,9 @@ export default function LLMConfigSheet({
                 <SelectValue placeholder="Select provider" />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="pollinations">Pollinations (Free)</SelectItem>
                 <SelectItem value="openai">OpenAI</SelectItem>
-                <SelectItem value="openai-like">OpenAI like</SelectItem>
+                <SelectItem value="openai-like">OpenAI Compatible</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -91,6 +84,7 @@ export default function LLMConfigSheet({
                 value={llmConfig.model}
                 onChange={(e) => setLlmConfig({ model: e.target.value })}
                 placeholder="Enter model name"
+                disabled={activeProvider === "pollinations"}
               />
             )}
           </div>
@@ -103,6 +97,7 @@ export default function LLMConfigSheet({
               type="password"
               value={llmConfig.apiKey}
               onChange={(e) => setLlmConfig({ apiKey: e.target.value })}
+              disabled={activeProvider === "pollinations"}
               placeholder="Enter your API key"
             />
           </div>
@@ -114,6 +109,7 @@ export default function LLMConfigSheet({
               <Input
                 id="endpoint"
                 value={llmConfig.endpoint || ""}
+                disabled={activeProvider === "pollinations"}
                 onChange={(e) =>
                   setLlmConfig({endpoint: e.target.value})
                 }
@@ -145,10 +141,6 @@ export default function LLMConfigSheet({
             </div>
           </div>
         </div>
-
-        <SheetFooter>
-          <Button onClick={handleSave}>Save Settings</Button>
-        </SheetFooter>
       </SheetContent>
     </Sheet>
   );

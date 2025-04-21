@@ -3,7 +3,7 @@ import type React from "react";
 import { useState, useRef, useEffect } from "react";
 import { CornerDownLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useAtom, useAtomValue, useSetAtom } from "jotai";
+import { atom, useAtom, useAtomValue, useSetAtom } from "jotai";
 import { userAtom, userSheetOpenAtom, llmHandlerAtom, activeLLMConfigAtom } from "@/lib/atoms";
 import { ChatInput } from "./ui/chat/chat-input";
 import { ChatMessageList } from "./ui/chat/chat-message-list";
@@ -15,6 +15,7 @@ import {
   ChatBubbleAvatar,
   ChatBubbleMessage,
 } from "./ui/chat/chat-bubble";
+import { atomWithStorage, RESET } from "jotai/utils";
 
 type Message = {
   id: string;
@@ -23,8 +24,17 @@ type Message = {
   timestamp: Date;
 };
 
+const messagesAtom = atomWithStorage<Message[]>("messages", []);
+
+export const resetMessagesAtom = atom(
+  (get) => get(messagesAtom),
+  (_, set) => {
+    set(messagesAtom, RESET);
+  }
+);
+
 export default function ChatInterface() {
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useAtom(messagesAtom);
 
   const [input, setInput] = useState("");
   const [userProfile] = useAtom(userAtom);
@@ -80,6 +90,14 @@ export default function ChatInterface() {
               status: "complete",
             }));
           },
+          onError: ({error}) => {
+            const errorMessage = error instanceof Error ? error.message : undefined;
+            setLastAIMessage((prev) => ({
+              ...prev,
+              content: errorMessage || "Unknown error",
+              status: "error",
+            }));
+          }
         });
         for await (const part of result.fullStream) {
           switch (part.type) {
@@ -211,6 +229,17 @@ export default function ChatInterface() {
                     height={80}
                     alt="epic-loader"
                   />
+                )}
+                {lastAIMessage.status === "error" && (
+                  <div className="flex items-center gap-2">
+                    <img
+                      src="/error.gif"
+                      width={80}
+                      height={80}
+                      alt="epic-error"
+                    />
+                    {lastAIMessage.content}
+                  </div>
                 )}
               </ChatBubbleMessage>
             </ChatBubble>

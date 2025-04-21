@@ -2,7 +2,7 @@ import { atom } from "jotai";
 import { atomWithStorage } from "jotai/utils";
 import { TypstDocument } from "./typst";
 import { sampleResumeContent } from "./content";
-import { openAIHandler } from "./llm";
+import { openAIHandler, PollinationsHandler } from "./llm";
 
 // User profile atom
 export type UserProfile = {
@@ -76,60 +76,76 @@ export const userAtom = atom<UserProfile>({
   ],
 });
 
-export type LLMProvider = "openai" | "openai-like";
+export type LLMProvider = "pollinations" | "openai" | "openai-like";
 
 // LLM configuration atom
 export type LLMConfig = {
   provider: LLMProvider;
-  model?: string;
+  model: string;
   apiKey?: string;
   endpoint?: string;
   temperature: number;
 };
 
-export const llmConfigAtom = atomWithStorage<Record<LLMProvider, LLMConfig>>("llm-config", {
-  'openai-like': {
-  provider: "openai-like",
-  model: "openai",
-  endpoint: "https://text.pollinations.ai/openai",
-  apiKey: "",
-  temperature: 0.7,
-},
-  openai: {
-    provider: "openai",
-    model: "gpt-3.5-turbo",
-    apiKey: import.meta.env.VITE_OPENAI_KEY as string,
-    endpoint: "https://api.openai.com/v1/chat/completions",
-    temperature: 0.7,
-  },
-});
-
-export const activeLLMProviderAtom = atom<LLMProvider>("openai-like");
-
-export const activeLLMConfigAtom = atom(get => {
-  const activeProvider = get(activeLLMProviderAtom);
-  return get(llmConfigAtom)[activeProvider];
-}, (get, set, args: Partial<LLMConfig>) => {
-  const activeProvider = get(activeLLMProviderAtom);
-  const llmConfig = get(llmConfigAtom)[activeProvider];
-  set(llmConfigAtom, {
-    ...get(llmConfigAtom),
-    [activeProvider]: {
-      ...llmConfig,
-      ...args
+export const llmConfigAtom = atomWithStorage<Record<LLMProvider, LLMConfig>>(
+  "llm-config",
+  {
+    pollinations: {
+      provider: "pollinations",
+      model: "openai",
+      endpoint: "https://text.pollinations.ai/openai",
+      apiKey: "",
+      temperature: 0.7,
     },
-  });
-})
+    "openai-like": {
+      provider: "openai-like",
+      model: "openai",
+      endpoint: "https://openrouter.ai/api/v1/",
+      apiKey: "",
+      temperature: 0.7,
+    },
+    openai: {
+      provider: "openai",
+      model: "gpt-3.5-turbo",
+      apiKey: import.meta.env.VITE_OPENAI_KEY as string,
+      endpoint: "https://api.openai.com/v1/chat/completions",
+      temperature: 0.7,
+    },
+  }
+);
+
+export const activeLLMProviderAtom = atom<LLMProvider>("pollinations");
+
+export const activeLLMConfigAtom = atom(
+  (get) => {
+    const activeProvider = get(activeLLMProviderAtom);
+    return get(llmConfigAtom)[activeProvider];
+  },
+  (get, set, args: Partial<LLMConfig>) => {
+    const activeProvider = get(activeLLMProviderAtom);
+    const llmConfig = get(llmConfigAtom)[activeProvider];
+    set(llmConfigAtom, {
+      ...get(llmConfigAtom),
+      [activeProvider]: {
+        ...llmConfig,
+        ...args,
+      },
+    });
+  }
+);
 
 export const llmHandlerAtom = atom((get) => {
   const activeProvider = get(activeLLMProviderAtom);
   const llmConfig = get(llmConfigAtom)[activeProvider];
-  return new openAIHandler(
-    llmConfig.apiKey ?? "",
-    llmConfig.endpoint ?? "",
-    llmConfig.temperature ?? "",
-    llmConfig.model ?? ""
-  );
+  if (activeProvider === "pollinations") {
+    return new PollinationsHandler(llmConfig.model, llmConfig.temperature);
+  }
+  return new openAIHandler({
+    model: llmConfig.model,
+    temperature: llmConfig.temperature,
+    apiKey: llmConfig.apiKey,
+    baseURL: llmConfig.endpoint,
+  });
 });
 
 // Active Document State
