@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@ai-sdk/openai": "^1.3.16",
+    "@fontsource/figtree": "^5.2.6",
     "@myriaddreamin/typst-ts-renderer": "^0.5.5-rc7",
     "@myriaddreamin/typst-ts-web-compiler": "^0.5.5-rc7",
     "@myriaddreamin/typst.ts": "^0.5.5-rc7",
