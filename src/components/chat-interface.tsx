@@ -97,7 +97,7 @@ export default function ChatInterface() {
               content: errorMessage || "Unknown error",
               status: "error",
             }));
-          }
+          },
         });
         for await (const part of result.fullStream) {
           switch (part.type) {
@@ -166,12 +166,12 @@ export default function ChatInterface() {
       <div className="flex-1 overflow-y-auto p-2">
         <ChatMessageList>
           {messages.length === 0 && (
-            <div className="w-full bg-background shadow-md border rounded-lg flex flex-col overflow-hidden">
-              <h1 className="font-bold bg-dark-accent text-background text-4xl md:text-5xl p-6 leading-tight">
+            <div className="w-full bg-background shadow-md rounded-lg flex flex-col overflow-hidden">
+              <h1 className="font-bold text-4xl md:text-5xl leading-tight">
                 Resume Builder
               </h1>
-              <div className="p-6 text-white text-base">
-                <p className="text-lg font-medium mb-2">
+              <div className="text-white text-base">
+                <p className="text-lg font-medium my-2">
                   Build a sick resume in minutes!
                 </p>
                 <p className="mb-4">

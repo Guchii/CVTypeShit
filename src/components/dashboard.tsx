@@ -107,7 +107,7 @@ const ResetAlertDialog = () => {
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <AlertDialogAction onClick={() => resetMessages()}>
+          <AlertDialogAction  onClick={() => resetMessages()}>
             Continue
           </AlertDialogAction>
         </AlertDialogFooter>

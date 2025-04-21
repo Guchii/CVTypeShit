@@ -21,6 +21,10 @@ export class TypstDocument {
     this.typst.mapShadow("/template.yml", new TextEncoder().encode(sampleUserConfig));
   }
 
+  getContent(): string {
+    return this.document;
+  }
+
   async downloadDocument(): Promise<void> {
     const blob = new Blob([this.document], { type: "application/pdf" });
     const url = URL.createObjectURL(blob);
