@@ -1,5 +1,5 @@
 import { $typst } from "@myriaddreamin/typst.ts/dist/esm/contrib/snippet.mjs";
-import { sampleUserConfig } from "./content";
+import { toast } from "sonner";
 
 $typst.setCompilerInitOptions({
   getModule: () =>
@@ -10,44 +10,74 @@ $typst.setRendererInitOptions({
     "https://cdn.jsdelivr.net/npm/@myriaddreamin/typst-ts-renderer/pkg/typst_ts_renderer_bg.wasm",
 });
 
+type TypstFile = {
+  path: string;
+  content: string;
+};
+
 export class TypstDocument {
   private typst: typeof $typst;
-  private document: string;
   private observers: ((content: string) => void)[] = [];
+  private filesContent: Map<string, string> = new Map();
 
-  constructor(document: string) {
+  /**
+   *
+   * @param mainContent contents for the file /main.typ
+   * @param files additional shadow files to be mapped in the typst compiler
+   */
+  constructor(private mainContent: string, files: TypstFile[]) {
     this.typst = $typst;
-    this.document = document;
-    this.typst.mapShadow("/template.yml", new TextEncoder().encode(sampleUserConfig));
+    files.map((file) => {
+      this.filesContent.set(file.path, file.content);
+      this.typst.mapShadow(file.path, new TextEncoder().encode(file.content));
+    });
   }
 
   getContent(): string {
-    return this.document;
+    return this.mainContent;
   }
 
-  async downloadDocument(): Promise<void> {
-    const blob = new Blob([this.document], { type: "application/pdf" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "document.pdf";
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+  getFile(path: string): string {
+    if (this.filesContent.has(path)) {
+      return this.filesContent.get(path) as string;
+    }
+    throw new Error(`File ${path} not found`);
   }
 
   async compileToPdf(): Promise<Uint8Array | undefined> {
-    return await this.typst.pdf({ mainContent: this.document });
+    return await this.typst.pdf({ mainContent: this.mainContent });
   }
 
   async compileToSVG(): Promise<string> {
-    return await this.typst.svg({ mainContent: this.document });
+    return await this.typst.svg({ mainContent: this.mainContent });
   }
 
   updateDocument(newDocument: string): void {
-    this.document = newDocument;
-    this.observers.forEach((observer) => observer(this.document));
+    this.mainContent = newDocument;
+    this.observers.forEach((observer) => observer(this.mainContent));
+  }
+
+  private updateFileContent(path: string, newContent: string): void {
+    this.typst.unmapShadow(path);
+    this.typst.mapShadow(path, new TextEncoder().encode(newContent));
+  }
+
+  async updateFile(path: string, newContent: string) {
+    const oldContent = this.filesContent.get(path);
+    this.updateFileContent(path, newContent);
+    try {
+      await this.compileToSVG()
+      toast.success("File updated successfully");
+      this.observers.forEach((observer) => observer(this.mainContent));
+    } catch (e) {
+      this.updateFileContent(path, oldContent as string);
+      toast.error(
+        `Error updating file ${path}: ${e}. The file has been reverted to its previous state.`
+      );
+      throw new Error(
+        `Error updating file ${path}: ${e}. The file has been reverted to its previous state.`
+      );
+    }
   }
 
   subscribeToChanges(observer: (content: string) => void): void {

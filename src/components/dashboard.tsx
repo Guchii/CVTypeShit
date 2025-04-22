@@ -24,6 +24,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Toaster } from "sonner";
 
 const resetMessagesAlertAtom = atom(false);
 
@@ -34,8 +35,9 @@ export default function Dashboard() {
 
   return (
     <TooltipProvider>
+      <Toaster />
       <div className="flex h-screen overflow-hidden bg-dark-200">
-        <div className="flex flex-col flex-1 border-r border-zinc-800 bg-dark-100">
+        <div className="flex flex-col flex-1 overflow-hidden border-r border-zinc-800 bg-dark-100">
           <div className="flex items-center justify-between p-4 border-b border-border">
             <div className="flex items-center gap-2">
               <Tooltip>
@@ -64,7 +66,11 @@ export default function Dashboard() {
               </Tooltip>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button onClick={() => setResetMessagesAlert(true)} variant="outline" size="icon">
+                  <Button
+                    onClick={() => setResetMessagesAlert(true)}
+                    variant="outline"
+                    size="icon"
+                  >
                     <LucideRefreshCcw className="h-5 w-5" />
                   </Button>
                 </TooltipTrigger>
@@ -93,7 +99,9 @@ export default function Dashboard() {
 
 const ResetAlertDialog = () => {
   const resetMessages = useSetAtom(resetMessagesAtom);
-  const [resetMessagesAlert, setResetMessagesAlert] = useAtom(resetMessagesAlertAtom);
+  const [resetMessagesAlert, setResetMessagesAlert] = useAtom(
+    resetMessagesAlertAtom
+  );
 
   return (
     <AlertDialog open={resetMessagesAlert} onOpenChange={setResetMessagesAlert}>
@@ -107,11 +115,11 @@ const ResetAlertDialog = () => {
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <AlertDialogAction  onClick={() => resetMessages()}>
+          <AlertDialogAction onClick={() => resetMessages()}>
             Continue
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
   );
-}
+};

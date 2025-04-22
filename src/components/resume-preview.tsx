@@ -8,6 +8,7 @@ function ResumePreview() {
   const typstDocument = useAtomValue(documentAtom);
 
   const contentRef = useRef<HTMLDivElement>(null);
+  console.log(typstDocument)
 
   const handleExportPDF = useCallback(async () => {
     const pdf = await typstDocument.compileToPdf();

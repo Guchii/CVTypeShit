@@ -5,27 +5,31 @@ import { z } from "zod";
 export class Tools {
   constructor(private typstDocument: TypstDocument) {}
   private getCurrentData(): string {
-    return this.typstDocument.getContent();
+    return this.typstDocument.getFile("/template.yml");
   }
-  private updateCurrentContent(newContent: string): void {
-    this.typstDocument.updateDocument(newContent);
+  private updateCurrentData(newContent: string): void {
+    this.typstDocument.updateFile("/template.yml", newContent);
   }
   public getTools(): ToolSet {
     return {
       getCurrentData: tool({
-        description: "Gets the current data of the document.",
-        parameters: z.undefined(),
+        description:
+          "Fetches the current resume data in YAML format, including all sections (personal info, work experience, education, etc.). Use this to understand the existing structure before making updates.",
+        parameters: z.object({}),
         execute: async () => {
           return { currentData: this.getCurrentData() };
         },
       }),
       updateCurrentData: tool({
-        description: "Updates the current data of the document.",
+        description:
+          "Overwrites the entire resume YAML with new content and triggers a live UI update. Provide the full YAML (not a diff) to ensure consistency. Use this after modifying any section.",
         parameters: z.object({
-          newContent: z.string(),
+          newContent: z
+            .string()
+            .describe("The new yaml content to update the resume with"),
         }),
         execute: async ({ newContent }) => {
-          this.updateCurrentContent(newContent);
+          this.updateCurrentData(newContent);
           return { success: true };
         },
       }),

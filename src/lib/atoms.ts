@@ -1,79 +1,100 @@
 import { atom } from "jotai";
 import { atomWithStorage } from "jotai/utils";
 import { TypstDocument } from "./typst";
-import { sampleResumeContent } from "./content";
+import { sampleResumeContent, sampleUserConfig } from "./content";
 import { openAIHandler, PollinationsHandler } from "./llm";
+import { ResumeData } from "./types/resume-data"; // Import the new type
 
-// User profile atom
-export type UserProfile = {
-  name: string;
-  email: string;
-  phone: string;
-  location: string;
-  summary: string;
-  avatarUrl: string;
-  experience: {
-    title: string;
-    company: string;
-    period: string;
-    description: string;
-  }[];
-  education: {
-    degree: string;
-    institution: string;
-    period: string;
-  }[];
-  skills: string[];
-};
-
-export const userAtom = atom<UserProfile>({
-  name: "John Doe",
-  email: "john.doe@example.com",
-  phone: "(555) 123-4567",
-  location: "San Francisco, CA",
-  summary:
-    "Experienced software engineer with a passion for building user-friendly applications. Skilled in JavaScript, React, and Node.js with a track record of delivering high-quality products on time.",
-  avatarUrl: "//placecats.com/400/400",
-  experience: [
+// User profile atom using ResumeData type
+export const userAtom = atom<ResumeData>({
+  personal: {
+    name: "John Doe",
+    email: "john.doe@example.com",
+    phone: "(555) 123-4567",
+    url: "https://johndoe.com", // Added default
+    titles: ["Software Engineer"], // Added default
+    location: {
+      city: "San Francisco", // Adjusted structure
+      region: "CA", // Adjusted structure
+      country: "USA", // Added default
+    },
+    profiles: [ // Added default
+        { network: "LinkedIn", username: "johndoe", url: "https://linkedin.com/in/johndoe" },
+        { network: "GitHub", username: "johndoe", url: "https://github.com/johndoe" }
+    ],
+    // 'summary' and 'avatarUrl' from old type are not in ResumeData.personal
+  },
+  work: [ // Adjusted structure and mapped fields
     {
-      title: "Senior Software Engineer",
-      company: "Tech Solutions Inc.",
-      period: "2020 - Present",
-      description:
-        "Led development of a customer-facing web application that increased user engagement by 40%. Mentored junior developers and implemented best practices for code quality.",
+      organization: "Tech Solutions Inc.",
+      url: "https://techsolutions.example.com", // Added default URL
+      location: "San Francisco, CA", // Added default location
+      positions: [
+        {
+          position: "Senior Software Engineer",
+          startDate: "2020-01-01", // Mapped 'period' roughly
+          endDate: "present", // Mapped 'period' roughly
+          highlights: [
+            "Led development of a customer-facing web application that increased user engagement by 40%.", // Mapped 'description'
+            "Mentored junior developers and implemented best practices for code quality.", // Mapped 'description'
+          ],
+        },
+      ],
     },
     {
-      title: "Software Developer",
-      company: "Digital Innovations",
-      period: "2017 - 2020",
-      description:
-        "Developed and maintained multiple web applications using React and Node.js. Collaborated with design team to implement responsive UI components.",
+      organization: "Digital Innovations",
+      url: "https://digitalinnovations.example.com", // Added default URL
+      location: "San Francisco, CA", // Added default location
+      positions: [
+        {
+          position: "Software Developer",
+          startDate: "2017-01-01", // Mapped 'period' roughly
+          endDate: "2019-12-31", // Mapped 'period' roughly
+          highlights: [
+            "Developed and maintained multiple web applications using React and Node.js.", // Mapped 'description'
+            "Collaborated with design team to implement responsive UI components.", // Mapped 'description'
+          ],
+        },
+      ],
     },
   ],
-  education: [
+  education: [ // Adjusted structure and mapped fields
     {
-      degree: "Master of Computer Science",
       institution: "University of Technology",
-      period: "2015 - 2017",
+      url: "https://universityoftechnology.example.com", // Added default URL
+      area: "Computer Science", // Mapped 'degree'
+      studyType: "Master", // Mapped 'degree'
+      startDate: "2015-09-01", // Mapped 'period' roughly
+      endDate: "2017-05-31", // Mapped 'period' roughly
+      location: "Tech City, USA", // Added default location
+      honors: [], // Added default
+      courses: [], // Added default
+      highlights: [], // Added default
     },
     {
-      degree: "Bachelor of Science in Computer Engineering",
       institution: "State University",
-      period: "2011 - 2015",
+      url: "https://stateuniversity.example.com", // Added default URL
+      area: "Computer Engineering", // Mapped 'degree'
+      studyType: "Bachelor of Science", // Mapped 'degree'
+      startDate: "2011-09-01", // Mapped 'period' roughly
+      endDate: "2015-05-31", // Mapped 'period' roughly
+      location: "State City, USA", // Added default location
+      honors: [], // Added default
+      courses: [], // Added default
+      highlights: [], // Added default
     },
   ],
-  skills: [
-    "JavaScript",
-    "TypeScript",
-    "React",
-    "Node.js",
-    "HTML/CSS",
-    "Git",
-    "REST APIs",
-    "SQL",
-    "AWS",
-    "Agile Methodologies",
+  skills: [ // Adjusted structure
+    { category: "Programming", skills: ["JavaScript", "React", "Node.js"] }, // Mapped old 'skills'
   ],
+  affiliations: [], // Added default
+  awards: [], // Added default
+  certificates: [], // Added default
+  publications: [], // Added default
+  projects: [], // Added default
+  languages: [], // Added default
+  interests: [], // Added default
+  references: [], // Added default
 });
 
 export type LLMProvider = "pollinations" | "openai" | "openai-like";
@@ -114,7 +135,7 @@ export const llmConfigAtom = atomWithStorage<Record<LLMProvider, LLMConfig>>(
   }
 );
 
-export const activeLLMProviderAtom = atom<LLMProvider>("pollinations");
+export const activeLLMProviderAtom = atomWithStorage<LLMProvider>('active-llm-provider', "pollinations");
 
 export const activeLLMConfigAtom = atom(
   (get) => {
@@ -150,7 +171,12 @@ export const llmHandlerAtom = atom((get) => {
 
 // Active Document State
 export const documentAtom = atom<TypstDocument>(
-  new TypstDocument(sampleResumeContent)
+  new TypstDocument(sampleResumeContent, [
+    {
+      path: "/template.yml",
+      content: sampleUserConfig,
+    },
+  ])
 );
 
 // Sheets State
