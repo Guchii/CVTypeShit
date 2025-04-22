@@ -11,7 +11,6 @@ import {
   SheetContent,
   SheetHeader,
   SheetTitle,
-  SheetFooter,
   SheetDescription,
 } from "@/components/ui/sheet";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -27,11 +26,6 @@ export default function UserProfileSheet({
   onOpenChange,
 }: UserProfileSheetProps) {
   const [userProfile, setUserProfile] = useAtom(userAtom);
-
-  const handleSave = () => {
-    // In a real app, you might want to validate the data
-    onOpenChange(false);
-  };
 
   const addExperience = () => {
     setUserProfile((prev) => ({
@@ -97,7 +91,7 @@ export default function UserProfileSheet({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
         side="left"
-        className="w-[400px] sm:w-[540px] bg-dark-100 border-zinc-800"
+        className="max-w-[540px] bg-dark-100 border-zinc-800"
       >
         <SheetHeader className="p-6">
           <SheetTitle className="text-4xl">Resume Data</SheetTitle>
@@ -107,7 +101,7 @@ export default function UserProfileSheet({
           </SheetDescription>
         </SheetHeader>
 
-        <ScrollArea className="h-[calc(100vh-320px)] px-4">
+        <ScrollArea className="h-[calc(100vh-160px)] px-6">
           <div className="space-y-6">
             {/* Basic Info */}
             <div className="space-y-4">
@@ -362,7 +356,7 @@ export default function UserProfileSheet({
               ))}
             </div>
             {/* Skills */}
-            <div className="space-y-4">
+            <div className="space-y-4 pb-4">
               <div className="flex justify-between items-center">
                 <Label>Skills</Label>
                 <Button
@@ -396,10 +390,6 @@ export default function UserProfileSheet({
             </div>
           </div>
         </ScrollArea>
-
-        <SheetFooter>
-          <Button onClick={handleSave}>Save Changes</Button>
-        </SheetFooter>
       </SheetContent>
     </Sheet>
   );
