@@ -37,7 +37,6 @@ function ResumePreview() {
 
   return (
     <div className="h-fit bg-white overflow-auto my-4 rounded-lg shadow-xl max-w-3xl mx-auto border border-zinc-200">
-      <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent"></h1>
       <div ref={contentRef} className="w-full bg-white [&>svg]:w-full" />
       <div className="fixed top-0 right-0">
         <Button onClick={handleExportPDF} className="hover:scale-125 origin-top-right ease-[cubic-bezier(0.85,0,0.15,1)] duration-300" variant="default" size="sm">
