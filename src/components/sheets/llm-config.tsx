@@ -1,25 +1,18 @@
-import { useAtom } from "jotai";
-import {
-  activeLLMConfigAtom,
-  activeLLMProviderAtom,
-  LLMProvider,
-} from "@/lib/atoms";
+import { Command, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Slider } from "@/components/ui/slider";
+import { activeLLMConfigAtom, activeLLMProviderAtom, LLMProvider, modelsAtom } from "@/lib/atoms";
+import { cn } from "@/lib/utils";
+import { useAtom, useAtomValue } from "jotai";
+import { ChevronsUpDown } from "lucide-react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+
+import { Button } from "../ui/button";
 
 type LLMConfigSheetProps = {
   open: boolean;
@@ -32,6 +25,16 @@ export default function LLMConfigSheet({
 }: LLMConfigSheetProps) {
   const [activeProvider, setActiveProvider] = useAtom(activeLLMProviderAtom);
   const [llmConfig, setLlmConfig] = useAtom(activeLLMConfigAtom);
+  const [modelsPopoverOpen, setModelsPopoverOpen] = useState(false);
+  const { data: models, error, isLoading } = useAtomValue(modelsAtom);
+
+  useEffect(() => {
+    if (error?.message) {
+      toast.error("Error Occurred while fetching models", {
+        description: error.message,
+      });
+    }
+  }, [error?.message]);
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -54,7 +57,9 @@ export default function LLMConfigSheet({
                 <SelectValue placeholder="Select provider" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="pollinations">Pollinations (Free)</SelectItem>
+                <SelectItem value="pollinations">
+                  Pollinations (Free)
+                </SelectItem>
                 <SelectItem value="openai">OpenAI</SelectItem>
                 <SelectItem value="openai-like">OpenAI Compatible</SelectItem>
               </SelectContent>
@@ -62,31 +67,63 @@ export default function LLMConfigSheet({
           </div>
 
           {/* Model Selection */}
-          <div className="space-y-2">
+          <div className="space-y-2 w-full">
             <Label htmlFor="model">Model</Label>
-            {activeProvider === "openai" ? (
-              <Select
-                value={llmConfig.model}
-                onValueChange={(value) => setLlmConfig({ model: value })}
-              >
-                <SelectTrigger id="model">
-                  <SelectValue placeholder="Select model" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="gpt-4o">GPT-4o</SelectItem>
-                  <SelectItem value="gpt-4">GPT-4</SelectItem>
-                  <SelectItem value="gpt-3.5-turbo">GPT-3.5 Turbo</SelectItem>
-                </SelectContent>
-              </Select>
-            ) : (
-              <Input
-                id="model"
-                value={llmConfig.model}
-                onChange={(e) => setLlmConfig({ model: e.target.value })}
-                placeholder="Enter model name"
-                disabled={activeProvider === "pollinations"}
-              />
-            )}
+            {
+              <div className="space-y-2 w-full">
+                <Popover open={modelsPopoverOpen} onOpenChange={setModelsPopoverOpen}>
+                  <PopoverTrigger asChild className="w-full" id="model">
+                    <Button
+                      variant="outline"
+                      className={cn("w-full justify-between", {
+                        "cursor-not-allowed animate-shine": isLoading,
+                      })}
+                      role="combobox"
+                      aria-expanded={open}
+                    >
+                      {llmConfig.model && !error
+                        ? models?.find((model) => model.id === llmConfig.model)
+                            ?.id ?? llmConfig.model
+                        : "Select Model..."}
+                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent
+                    onWheel={(e) => e.stopPropagation()}
+                    onTouchMove={(e) => e.stopPropagation()}
+                    align="start"
+                    className="w-full dark"
+                  >
+                    {error ? (
+                      <div className="flex items-center justify-center w-full h-32">
+                        <p className="text-sm text-muted-foreground">
+                          {error.message}
+                        </p>
+                      </div>
+                    ) : (
+                      <Command className="dark">
+                        <CommandInput placeholder="Search models..." />
+                        <CommandList className="overflow-auto">
+                          {models?.map((model) => (
+                            <CommandItem
+                              key={model.id}
+                              value={model.id}
+                              className="cursor-pointer"
+                              onSelect={(value) => {
+                                setLlmConfig({ model: value });
+                                setModelsPopoverOpen(false);
+                              }}
+                            >
+                              {model.name || model.id}
+                            </CommandItem>
+                          ))}
+                        </CommandList>
+                      </Command>
+                    )}
+                  </PopoverContent>
+                </Popover>
+              </div>
+            }
           </div>
 
           {/* API Key */}
@@ -110,9 +147,7 @@ export default function LLMConfigSheet({
                 id="endpoint"
                 value={llmConfig.endpoint || ""}
                 disabled={activeProvider === "pollinations"}
-                onChange={(e) =>
-                  setLlmConfig({endpoint: e.target.value})
-                }
+                onChange={(e) => setLlmConfig({ endpoint: e.target.value })}
                 placeholder="https://api.example.com/v1/chat/completions"
               />
             </div>
@@ -131,9 +166,7 @@ export default function LLMConfigSheet({
               max={1}
               step={0.1}
               value={[llmConfig.temperature]}
-              onValueChange={(value) =>
-                setLlmConfig({ temperature: value[0] })
-              }
+              onValueChange={(value) => setLlmConfig({ temperature: value[0] })}
             />
             <div className="flex justify-between text-xs text-muted-foreground">
               <span>Precise</span>

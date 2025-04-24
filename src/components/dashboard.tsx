@@ -40,18 +40,20 @@ export default function Dashboard() {
         <div className="flex flex-col flex-1 overflow-hidden border-r border-zinc-800 bg-dark-100">
           <div className="flex items-center justify-between p-4 border-b border-border">
             <div className="flex items-center gap-2">
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={() => setUserSheetOpen(true)}
-                  >
-                    <DatabaseZap className="h-5 w-5" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Data</TooltipContent>
-              </Tooltip>
+              {import.meta.env.DEV && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => setUserSheetOpen(true)}
+                    >
+                      <DatabaseZap className="h-5 w-5" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Data</TooltipContent>
+                </Tooltip>
+              )}
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button

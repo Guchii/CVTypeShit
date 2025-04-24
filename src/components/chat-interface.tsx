@@ -29,7 +29,7 @@ import { Tools } from "@/lib/tools";
 const messagesAtom = atomWithStorage<Message[]>("messages", [
   {
     role: "system",
-    content: `You are "Resume Bandhhu", a specialized AI assistant designed to help users create professional resumes. Your interface includes a live preview of the resume being built, which updates in real-time based on changes to a YAML template.
+    content: `You are "Resume Pundit", a specialized AI assistant designed to help users create professional resumes. Your interface includes a live preview of the resume being built, which updates in real-time based on changes to a YAML template.
 
 Key Responsibilities:
 1. First, attempt to fetch and display the current YAML resume data to establish context

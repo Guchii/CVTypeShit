@@ -1,9 +1,12 @@
 import { atom } from "jotai";
+// Import the new type
+import { atomWithQuery } from "jotai-tanstack-query";
 import { atomWithStorage } from "jotai/utils";
-import { TypstDocument } from "./typst";
+
 import { sampleResumeContent, sampleUserConfig } from "./content";
 import { openAIHandler, PollinationsHandler } from "./llm";
-import { ResumeData } from "./types/resume-data"; // Import the new type
+import { ResumeData } from "./types/resume-data";
+import { TypstDocument } from "./typst";
 
 // User profile atom using ResumeData type
 export const userAtom = atom<ResumeData>({
@@ -18,13 +21,23 @@ export const userAtom = atom<ResumeData>({
       region: "CA", // Adjusted structure
       country: "USA", // Added default
     },
-    profiles: [ // Added default
-        { network: "LinkedIn", username: "johndoe", url: "https://linkedin.com/in/johndoe" },
-        { network: "GitHub", username: "johndoe", url: "https://github.com/johndoe" }
+    profiles: [
+      // Added default
+      {
+        network: "LinkedIn",
+        username: "johndoe",
+        url: "https://linkedin.com/in/johndoe",
+      },
+      {
+        network: "GitHub",
+        username: "johndoe",
+        url: "https://github.com/johndoe",
+      },
     ],
     // 'summary' and 'avatarUrl' from old type are not in ResumeData.personal
   },
-  work: [ // Adjusted structure and mapped fields
+  work: [
+    // Adjusted structure and mapped fields
     {
       organization: "Tech Solutions Inc.",
       url: "https://techsolutions.example.com", // Added default URL
@@ -58,7 +71,8 @@ export const userAtom = atom<ResumeData>({
       ],
     },
   ],
-  education: [ // Adjusted structure and mapped fields
+  education: [
+    // Adjusted structure and mapped fields
     {
       institution: "University of Technology",
       url: "https://universityoftechnology.example.com", // Added default URL
@@ -84,7 +98,8 @@ export const userAtom = atom<ResumeData>({
       highlights: [], // Added default
     },
   ],
-  skills: [ // Adjusted structure
+  skills: [
+    // Adjusted structure
     { category: "Programming", skills: ["JavaScript", "React", "Node.js"] }, // Mapped old 'skills'
   ],
   affiliations: [], // Added default
@@ -135,7 +150,10 @@ export const llmConfigAtom = atomWithStorage<Record<LLMProvider, LLMConfig>>(
   }
 );
 
-export const activeLLMProviderAtom = atomWithStorage<LLMProvider>('active-llm-provider', "pollinations");
+export const activeLLMProviderAtom = atomWithStorage<LLMProvider>(
+  "active-llm-provider",
+  "pollinations"
+);
 
 export const activeLLMConfigAtom = atom(
   (get) => {
@@ -182,3 +200,20 @@ export const documentAtom = atom<TypstDocument>(
 // Sheets State
 export const userSheetOpenAtom = atom(false);
 export const llmSheetOpenAtom = atom(false);
+
+// Query Atoms
+export const modelsAtom = atomWithQuery((get) => {
+  const llmHandler = get(llmHandlerAtom);
+  const activeProvider = get(activeLLMProviderAtom);
+  return {
+    queryKey: ["models", activeProvider],
+    queryFn: async () => {
+      return await llmHandler.getModels();
+    },
+    staleTime: 60 * 60 * 24 * 1000, // 1 day
+    cacheTime: 60 * 60 * 24 * 1000, // 1 day
+    retry: 0,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+  };
+});
