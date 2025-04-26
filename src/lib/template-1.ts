@@ -5,14 +5,15 @@ import z, { ZodSchema } from "zod";
 
 import { ResumeData, ResumeDataSchema } from "./types/resume-data";
 import { TypstDocument } from "./typst";
-import { sampleResumeContent } from "./content";
+import { sampleResumeContent, sampleUserConfig } from "./content";
 
 export class Template1 extends TypstDocument {
   private _data: ResumeData;
   constructor(
     template = sampleResumeContent,
-    yaml = `personal:
-  name: Add Your Name`
+  //   yaml = `personal:
+  // name: Add Your Name`
+  yaml = sampleUserConfig
   ) {
     super(template, [
       {
