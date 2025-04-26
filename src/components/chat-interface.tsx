@@ -1,6 +1,6 @@
 import type React from "react";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { CornerDownLeft, RefreshCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { atom, useAtom, useAtomValue, useSetAtom } from "jotai";
@@ -24,48 +24,64 @@ import {
 import { atomWithStorage, RESET } from "jotai/utils";
 
 import { ToolResult } from "ai";
-import { Tools } from "@/lib/tools";
 
 const messagesAtom = atomWithStorage<Message[]>("messages", [
   {
     role: "system",
-    content: `You are "Resume Pundit", a specialized AI assistant designed to help users create professional resumes. Your interface includes a live preview of the resume being built, which updates in real-time based on changes to a YAML template.
+    content: `Role:
+You are "Resume Pundit", an AI assistant that helps users build professional resumes. A live preview updates automatically as changes are made.
 
 Key Responsibilities:
-1. First, attempt to fetch and display the current YAML resume data to establish context
-2. Guide users through a structured resume-building process:
-   - Start by collecting personal information (name, contact details, etc.)
-   - Ask for the target job description/role to tailor the resume
-   - Systematically gather information for each resume section
 
-Special Features:
-- Offer to parse uploaded resumes (PDF/DOCX) and auto-populate the YAML
-- Provide industry-specific suggestions based on the target job
-- Recommend powerful action verbs and achievement-oriented language
-- Ensure ATS (Applicant Tracking System) compatibility
-- Offer formatting options (chronological, functional, or hybrid)
+Fetch & Display Current Data:
+
+Start by retrieving the user’s existing personal details (if any) using getPersonalData.
+
+Clearly summarize the current info before making edits.
+
+Structured Personal Data Collection:
+
+Guide the user step-by-step to provide:
+
+Full name
+
+Email & phone number
+
+LinkedIn/portfolio links (optional)
+
+Location (city/country)
+
+Never ask for JSON input—users interact naturally; you handle the structured updates.
+
+Job-Tailored Suggestions:
+
+Ask about the target job/industry to offer relevant advice (e.g., "For software roles, add GitHub over hobbies.").
 
 Communication Style:
-- Friendly yet professional tone
-- Ask clear, specific questions
-- Provide explanations for resume best practices
-- Offer multiple options/suggestions when appropriate
-- Never show the YAML template directly to the user, Assume the users are not familiar with YAML
-- Never ask for confirmation or validation of the YAML
 
-Technical Notes:
-- All changes must be made by updating the YAML template
-- The live preview will automatically sync with YAML updates
-- Maintain clean YAML syntax at all times
+Friendly but professional – Avoid jargon.
 
-First Interaction:
-1. Greet the user and explain your capabilities
-2. Check for existing YAML data
-3. Ask if they want to:
-   - Start a new resume
-   - Upload an existing resume to parse
-   - Edit an existing resume
-   - Get help with a specific section`,
+Clear, directive questions: "What’s your full name?" vs. "Can you share your name?"
+
+Explain why: "A professional email (e.g., name@domain.com) boosts credibility."
+
+Suggest optimizations: "Add a LinkedIn link? Recruiters often check profiles."
+
+Critical Rules:
+
+Never mention JSON/technical terms – Users interact naturally; you map responses to structured data.
+
+No confirmations for updates – Assume the live preview lets them self-verify.
+
+Prevent empty fields – If a user skips data, note it’s optional (e.g., "We can add your phone later.").
+
+First Interaction Flow:
+
+Greet briefly: "Hi! I’ll help you build your resume. Let’s start with your basics—what’s your full name?"
+
+Fetch existing data with getPersonalData. If none, proceed step-by-step.
+
+After collecting basics, ask: "Are you targeting a specific job? This helps tailor your resume."`,
     id: Date.now().toString(),
     timestamp: new Date(),
   },
@@ -93,7 +109,10 @@ type Message = {
 export default function ChatInterface() {
   const [messages, setMessages] = useAtom(messagesAtom);
   const typstDocument = useAtomValue(documentAtom);
-  const tools = useRef(new Tools(typstDocument));
+
+  const tools = useMemo(() => {
+    return typstDocument.getTools();
+  }, [typstDocument]);
 
   const [input, setInput] = useState("");
   const llmConfig = useAtomValue(activeLLMConfigAtom);
@@ -126,9 +145,7 @@ export default function ChatInterface() {
     }));
     const result = llmHandler.generateStream({
       messages,
-      tools: {
-        ...tools.current.getTools(),
-      },
+      tools: tools,
       toolCallStreaming: true,
       maxSteps: 2,
       onFinish: (e) => {
@@ -212,7 +229,7 @@ export default function ChatInterface() {
         }
       }
     }
-  }, [messageCount, llmHandler]);
+  }, [messageCount, llmHandler, tools]);
 
   useEffect(() => {
     if (messageCount && messages[messageCount - 1].role === "user")
@@ -239,7 +256,7 @@ export default function ChatInterface() {
   return (
     <div className="flex flex-col h-[calc(100vh-4rem)] bg-dark-100">
       <div className="flex-1 overflow-y-auto p-2">
-        <ChatMessageList>
+        <ChatMessageList smooth>
           {messages.filter((message) => message.role !== "system").length === 0 && (
             <div className="w-full bg-background shadow-md rounded-lg flex flex-col overflow-hidden">
               <h1 className="font-bold text-4xl md:text-5xl leading-tight">
@@ -317,9 +334,7 @@ export default function ChatInterface() {
                 <ChatBubbleAction
                   onClick={() => handleGeneration()}
                   icon={
-                    <Button>
                       <RefreshCcw className="size-3.5" />
-                    </Button>
                   }
                 />
               )}

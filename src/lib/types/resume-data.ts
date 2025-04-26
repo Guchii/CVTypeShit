@@ -1,122 +1,126 @@
-interface Location {
-  city: string;
-  region: string;
-  country: string;
-}
+import { z } from "zod";
 
-interface Profile {
-  network: string;
-  username: string;
-  url: string;
-}
+const LocationSchema = z.object({
+  city: z.string(),
+  region: z.string(),
+  country: z.string(),
+});
 
-interface PersonalInfo {
-  name: string;
-  email: string;
-  phone: string;
-  url: string;
-  titles: string[];
-  location: Location;
-  profiles: Profile[];
-}
+const ProfileSchema = z.object({
+  network: z.string(),
+  username: z.string(),
+  url: z.string(),
+});
 
-interface Position {
-  position: string;
-  startDate: string; // Could also be Date
-  endDate: string | "present"; // Could also be Date | "present"
-  highlights: string[];
-}
+const PersonalInfoSchema = z.object({
+  name: z.string(),
+  email: z.string().describe("Email address"),
+  phone: z.string(),
+  url: z.string(),
+  titles: z.array(z.string()),
+  location: LocationSchema,
+  profiles: z.array(ProfileSchema),
+});
 
-interface WorkExperience {
-  organization: string;
-  url: string;
-  location: string;
-  positions: Position[];
-}
+const PositionSchema = z.object({
+  position: z.string(),
+  startDate: z.string(), // Could also be Date, but keeping it string for consistency
+  endDate: z.string().or(z.literal("present")), // Could also be Date | "present"
+  highlights: z.array(z.string()),
+});
 
-interface Education {
-  institution: string;
-  url: string;
-  area: string;
-  studyType: string;
-  startDate: string; // Could also be Date
-  endDate: string; // Could also be Date
-  location: string;
-  honors: string[];
-  courses: string[];
-  highlights: string[];
-}
+const WorkExperienceSchema = z.object({
+  organization: z.string(),
+  url: z.string(),
+  location: z.string(),
+  positions: z.array(PositionSchema),
+});
 
-interface Affiliation {
-  organization: string;
-  position: string;
-  location: string;
-  url?: string; // Optional based on YAML example
-  startDate: string; // Could also be Date
-  endDate: string; // Could also be Date
-  highlights: string[];
-}
+const EducationSchema = z.object({
+  institution: z.string(),
+  url: z.string(),
+  area: z.string(),
+  studyType: z.string(),
+  startDate: z.string(), // Could also be Date, but keeping it string for consistency
+  endDate: z.string(), // Could also be Date, but keeping it string for consistency
+  location: z.string(),
+  honors: z.array(z.string()),
+  courses: z.array(z.string()),
+  highlights: z.array(z.string()),
+});
 
-interface Award {
-  title: string;
-  date: string; // Could also be Date
-  issuer: string;
-  url?: string; // Optional based on YAML example
-  location: string;
-  highlights: string[];
-}
+const AffiliationSchema = z.object({
+  organization: z.string(),
+  position: z.string(),
+  location: z.string(),
+  url: z.string().optional(), // Optional based on YAML example
+  startDate: z.string(), // Could also be Date, but keeping it string for consistency
+  endDate: z.string(), // Could also be Date, but keeping it string for consistency
+  highlights: z.array(z.string()),
+});
 
-interface Certificate {
-  name: string;
-  date: string; // Could also be Date
-  issuer: string;
-  url: string;
-  id: string;
-}
+const AwardSchema = z.object({
+  title: z.string(),
+  date: z.string(), // Could also be Date, but keeping it string for consistency
+  issuer: z.string(),
+  url: z.string().optional(), // Optional based on YAML example
+  location: z.string(),
+  highlights: z.array(z.string()),
+});
 
-interface Publication {
-  name: string;
-  publisher: string;
-  releaseDate: string; // Could also be Date
-  url: string;
-}
+const CertificateSchema = z.object({
+  name: z.string(),
+  date: z.string(), // Could also be Date, but keeping it string for consistency
+  issuer: z.string(),
+  url: z.string(),
+  id: z.string(),
+});
 
-interface Project {
-  name: string;
-  url: string;
-  affiliation: string;
-  startDate: string; // Could also be Date
-  endDate: string; // Could also be Date
-  highlights: string[];
-}
+const PublicationSchema = z.object({
+  name: z.string(),
+  publisher: z.string(),
+  releaseDate: z.string(), // Could also be Date, but keeping it string for consistency
+  url: z.string(),
+});
 
-interface SkillCategory {
-  category: string;
-  skills: string[];
-}
+const ProjectSchema = z.object({
+  name: z.string(),
+  url: z.string(),
+  affiliation: z.string(),
+  startDate: z.string(), // Could also be Date, but keeping it string for consistency
+  endDate: z.string(), // Could also be Date, but keeping it string for consistency
+  highlights: z.array(z.string()),
+});
 
-interface Language {
-  language: string;
-  fluency: string;
-}
+const SkillCategorySchema = z.object({
+  category: z.string(),
+  skills: z.array(z.string()),
+});
 
-interface Reference {
-  name: string;
-  reference: string;
-  url: string;
-}
+const LanguageSchema = z.object({
+  language: z.string(),
+  fluency: z.string(),
+});
 
-export interface ResumeData {
-  personal: PersonalInfo;
-  work: WorkExperience[];
-  education: Education[];
-  affiliations: Affiliation[];
-  awards: Award[];
-  certificates: Certificate[];
-  publications: Publication[];
-  projects: Project[];
-  skills: SkillCategory[];
-  languages: Language[];
-  interests: string[];
-  references?: Reference[]; // Marked as optional based on comment in YAML
-}
+const ReferenceSchema = z.object({
+  name: z.string(),
+  reference: z.string(),
+  url: z.string(),
+});
+
+export const ResumeDataSchema = z.object({
+  personal: PersonalInfoSchema,
+  work: z.array(WorkExperienceSchema),
+  education: z.array(EducationSchema),
+  affiliations: z.array(AffiliationSchema),
+  awards: z.array(AwardSchema),
+  certificates: z.array(CertificateSchema),
+  publications: z.array(PublicationSchema),
+  projects: z.array(ProjectSchema),
+  skills: z.array(SkillCategorySchema),
+  languages: z.array(LanguageSchema),
+  interests: z.array(z.string()),
+  references: z.array(ReferenceSchema).optional(), 
+});
+
+export type ResumeData = z.infer<typeof ResumeDataSchema>;

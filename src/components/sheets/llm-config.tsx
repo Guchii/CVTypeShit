@@ -42,7 +42,7 @@ export default function LLMConfigSheet({
         side="left"
         className="w-[400px] sm:w-[540px] bg-dark-100 border-zinc-800"
       >
-        <SheetHeader className="p-6">
+        <SheetHeader className="p-4">
           <SheetTitle className="text-4xl">LLM Settings</SheetTitle>
         </SheetHeader>
         <div className="px-6 space-y-6">

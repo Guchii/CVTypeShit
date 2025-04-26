@@ -40,7 +40,6 @@ export default function Dashboard() {
         <div className="flex flex-col flex-1 overflow-hidden border-r border-zinc-800 bg-dark-100">
           <div className="flex items-center justify-between p-4 border-b border-border">
             <div className="flex items-center gap-2">
-              {import.meta.env.DEV && (
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button
@@ -53,7 +52,6 @@ export default function Dashboard() {
                   </TooltipTrigger>
                   <TooltipContent>Data</TooltipContent>
                 </Tooltip>
-              )}
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button

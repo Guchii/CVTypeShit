@@ -3,8 +3,8 @@ import { atom } from "jotai";
 import { atomWithQuery } from "jotai-tanstack-query";
 import { atomWithStorage } from "jotai/utils";
 
-import { sampleResumeContent, sampleUserConfig } from "./content";
 import { openAIHandler, PollinationsHandler } from "./llm";
+import { Template1 } from "./template-1";
 import { ResumeData } from "./types/resume-data";
 import { TypstDocument } from "./typst";
 
@@ -188,14 +188,7 @@ export const llmHandlerAtom = atom((get) => {
 });
 
 // Active Document State
-export const documentAtom = atom<TypstDocument>(
-  new TypstDocument(sampleResumeContent, [
-    {
-      path: "/template.yml",
-      content: sampleUserConfig,
-    },
-  ])
-);
+export const documentAtom = atom<TypstDocument>(new Template1());
 
 // Sheets State
 export const userSheetOpenAtom = atom(false);

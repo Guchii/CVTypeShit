@@ -1,5 +1,7 @@
 import { $typst } from "@myriaddreamin/typst.ts/dist/esm/contrib/snippet.mjs";
+import { ToolSet } from "ai";
 import { toast } from "sonner";
+import { z, ZodSchema } from "zod";
 
 $typst.setCompilerInitOptions({
   getModule: () =>
@@ -67,7 +69,9 @@ export class TypstDocument {
     this.updateFileContent(path, newContent);
     try {
       await this.compileToSVG()
-      toast.success("File updated successfully");
+      toast.success("File updated successfully", {
+        icon: "✅",
+      });
       this.observers.forEach((observer) => observer(this.mainContent));
     } catch (e) {
       this.updateFileContent(path, oldContent as string);
@@ -86,5 +90,13 @@ export class TypstDocument {
 
   unsubscribeFromChanges(observer: () => void): void {
     this.observers = this.observers.filter((obs) => obs !== observer);
+  }
+
+  getTools(): ToolSet {
+    return {};
+  }
+
+  getDataSchema(): ZodSchema {
+    return z.object({});
   }
 }
