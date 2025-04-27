@@ -463,4 +463,8 @@
 #cvwork(cvdata)
 #cveducation(cvdata)
 #cvprojects(cvdata)
+#cvawards(cvdata)
+#cvcertificates(cvdata)
+#cvpublications(cvdata)
 #cvskills(cvdata)
+#cvreferences(cvdata)

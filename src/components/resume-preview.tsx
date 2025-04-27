@@ -63,7 +63,7 @@ function ResumePreview() {
   }, [typstDocument]);
 
   return (
-    <div className="h-fit bg-white overflow-auto my-4 rounded-lg shadow-xl max-w-3xl mx-auto border border-zinc-200">
+    <div className="h-[90%] w-full bg-white overflow-auto my-4 rounded-lg shadow-xl max-w-3xl mx-auto border border-zinc-200">
       <div ref={contentRef} className="w-full bg-white [&>svg]:w-full" />
       <div className="fixed top-0 right-0">
         <Button

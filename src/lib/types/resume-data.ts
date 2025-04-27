@@ -12,14 +12,14 @@ const ProfileSchema = z.object({
   url: z.string(),
 }).describe("Profile");
 
-const PersonalInfoSchema = z.object({
+export const PersonalInfoSchema = z.object({
   name: z.string(),
   email: z.string().describe("Email address"),
   phone: z.string(),
   url: z.string(),
   titles: z.array(z.string()),
   location: LocationSchema,
-  profiles: z.array(ProfileSchema),
+  profiles: z.array(ProfileSchema).optional(),
 });
 
 const PositionSchema = z.object({

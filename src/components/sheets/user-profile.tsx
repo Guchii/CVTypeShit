@@ -12,7 +12,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { AutoForm } from "../ui/autoform";
 import { ZodProvider } from "@autoform/zod";
 import { useMemo, useRef } from "react";
-import { useAtomValue } from "jotai";
+import { atom, useAtomValue, useSetAtom } from "jotai";
 import { documentAtom } from "@/lib/atoms";
 import { Button } from "../ui/button";
 import { Template1 } from "@/lib/template-1";
@@ -21,11 +21,24 @@ import { toast } from "sonner";
 import { Control } from "react-hook-form";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
 import { Dice3, Import } from "lucide-react";
+import { ImportResume } from "@/lib/import-resume";
 
 type UserProfileSheetProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 };
+
+const importResumeAtom = atom<ImportResume | null>(null);
+
+const triggerImportResumeAtom = atom(null, (get, set) => {
+  let importResume = get(importResumeAtom);
+  if (importResume) {
+    importResume.triggerImportResume();
+    return;
+  }
+  importResume = new ImportResume();
+  set(importResumeAtom, importResume);
+});
 
 export default function UserProfileSheet({
   open,
@@ -34,7 +47,9 @@ export default function UserProfileSheet({
   const activeDocument = useAtomValue(documentAtom);
   const formControl =
     useRef<Control<Record<string, never>, never, undefined | null>>(null);
-    
+
+  const triggerImportResume = useSetAtom(triggerImportResumeAtom);
+
   const schemaProvider = useMemo(() => {
     const schema = activeDocument.getDataSchema();
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -46,8 +61,7 @@ export default function UserProfileSheet({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
         onPointerDownOutside={(e) => {
-          if (!_.isEmpty(formControl.current?._formState.dirtyFields))
-          {
+          if (!_.isEmpty(formControl.current?._formState.dirtyFields)) {
             toast.success("Anna you have unsaved changes");
             e.preventDefault();
           }
@@ -64,7 +78,14 @@ export default function UserProfileSheet({
           <div className="flex items-center gap-2 mt-4">
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button disabled variant="outline" size="icon">
+                <Button
+                  onClick={() => {
+                    onOpenChange(false);
+                    triggerImportResume();
+                  }}
+                  variant="outline"
+                  size="icon"
+                >
                   <Import className="h-5 w-5" />
                 </Button>
               </TooltipTrigger>

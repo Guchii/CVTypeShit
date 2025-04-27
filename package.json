@@ -47,6 +47,7 @@
     "lucide-react": "^0.493.0",
     "motion": "^12.9.2",
     "openai": "^4.95.1",
+    "pdfjs-dist": "5.0.375",
     "react": "^19.0.0",
     "react-day-picker": "8.10.1",
     "react-dom": "^19.0.0",

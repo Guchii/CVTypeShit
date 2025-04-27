@@ -15,7 +15,7 @@ interface ApiHandler {
 }
 
 export class openAIHandler implements ApiHandler {
-  client: OpenAIProvider;
+  _client: OpenAIProvider;
   constructor(
     private options: Partial<OpenAIProviderSettings> & {
       model: string;
@@ -26,18 +26,22 @@ export class openAIHandler implements ApiHandler {
     }
   ) {
     options.baseURL = options.baseURL ?? "https://openrouter.ai/api/v1/";
-    this.client = createOpenAI({
+    this._client = createOpenAI({
       apiKey: options.apiKey,
       baseURL: options.baseURL,
       ...options,
     });
   }
 
+  get model() {
+    return this._client(this.options.model);
+  }
+
   generateStream(
     options: Partial<Parameters<typeof streamText>[0]>
   ): StreamTextResult<ToolSet, unknown> {
     return streamText({
-      model: this.client(this.options.model),
+      model: this.model,
       temperature: this.options.temperature,
       ...options,
     });
