@@ -5,16 +5,13 @@ import z, { ZodSchema } from "zod";
 
 import { ResumeData, ResumeDataSchema } from "./types/resume-data";
 import { TypstDocument } from "./typst";
-import { sampleResumeContent, sampleUserConfig } from "./content";
+
+const defaultYaml = `personal:
+  name: Add Your Name`;
 
 export class Template1 extends TypstDocument {
   private _data: ResumeData;
-  constructor(
-    template = sampleResumeContent,
-  //   yaml = `personal:
-  // name: Add Your Name`
-  yaml = sampleUserConfig
-  ) {
+  constructor(template = "", yaml = "") {
     super(template, [
       {
         content: yaml,
@@ -31,6 +28,11 @@ export class Template1 extends TypstDocument {
   set data(data: ResumeData) {
     this._data = data;
     this.updateFile("/template.yml", stringify(this._data));
+  }
+
+  replaceData(yaml: string) {
+    this._data = parse(yaml);
+    this.updateFile("/template.yml", yaml);
   }
 
   updatePersonalData(payload: Partial<ResumeData["personal"]>) {

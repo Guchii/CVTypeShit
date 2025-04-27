@@ -293,7 +293,7 @@
                 // Line 2: Organization and Date
                 #text(style: "italic")[#project.affiliation] #h(1fr) #daterange(start, end) \
                 #for hi in project.highlights [
-                    - #hi
+                    - #text()[#hi]
                 ]
             ]
         }

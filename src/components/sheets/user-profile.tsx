@@ -34,6 +34,7 @@ export default function UserProfileSheet({
   const activeDocument = useAtomValue(documentAtom);
   const formControl =
     useRef<Control<Record<string, never>, never, undefined | null>>(null);
+    
   const schemaProvider = useMemo(() => {
     const schema = activeDocument.getDataSchema();
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -45,7 +46,7 @@ export default function UserProfileSheet({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
         onPointerDownOutside={(e) => {
-          if (formControl.current?._getDirty())
+          if (!_.isEmpty(formControl.current?._formState.dirtyFields))
           {
             toast.success("Anna you have unsaved changes");
             e.preventDefault();
@@ -92,7 +93,6 @@ export default function UserProfileSheet({
                 //@ts-ignore
                 form.reset(activeDocument.data);
                 formControl.current = form.control;
-                console.log(form.control);
               }
             }}
             onSubmit={(data) => {

@@ -1,6 +1,5 @@
 import { $typst } from "@myriaddreamin/typst.ts/dist/esm/contrib/snippet.mjs";
 import { ToolSet } from "ai";
-import { toast } from "sonner";
 import { z, ZodSchema } from "zod";
 
 $typst.setCompilerInitOptions({
@@ -33,6 +32,7 @@ export class TypstDocument {
       this.filesContent.set(file.path, file.content);
       this.typst.mapShadow(file.path, new TextEncoder().encode(file.content));
     });
+    console.log(this)
   }
 
   getContent(): string {
@@ -69,15 +69,9 @@ export class TypstDocument {
     this.updateFileContent(path, newContent);
     try {
       await this.compileToSVG()
-      toast.success("File updated successfully", {
-        icon: "✅",
-      });
       this.observers.forEach((observer) => observer(this.mainContent));
     } catch (e) {
       this.updateFileContent(path, oldContent as string);
-      toast.error(
-        `Error updating file ${path}: ${e}. The file has been reverted to its previous state.`
-      );
       throw new Error(
         `Error updating file ${path}: ${e}. The file has been reverted to its previous state.`
       );
