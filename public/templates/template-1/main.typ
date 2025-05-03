@@ -87,7 +87,7 @@
         } else {
             upper(it.body)
         }
-        #v(-0.75em) #line(length: 100%, stroke: 1pt + black) // draw a line
+        #v(-0.75em) #line(length: 100%, stroke: 1pt + black) 
     ]
 
     // Name title/heading
@@ -163,7 +163,7 @@
 ]
 
 #let cvheading(info, uservars) = {
-  if(info != none ) {
+  if(info != none) {
     align(center)[
         = #info.personal.name
         #jobtitletext(info, uservars)
@@ -174,7 +174,7 @@
 }
 
 #let cvwork(info, title: "Work Experience", isbreakable: true) = {
-    if ("work" in info) and (info.work != none) {block[
+    if ("work" in info) and (info.work != none) and (info.work.len() > 0) {block[
         == #title
         #for w in info.work {
             block(width: 100%, breakable: isbreakable)[
@@ -208,15 +208,15 @@
 }
 
 #let cveducation(info, title: "Education", isbreakable: true) = {
-    if ("education" in info) and (info.education != none) {block[
+    if ("education" in info) and (info.education != none) and (info.education.len() > 0) {block[
         == #title
         #for edu in info.education {
             let start = strpdate(edu.startDate)
             let end = strpdate(edu.endDate)
 
             let edu-items = ""
-            if ("honors" in edu) and (edu.honors != none) {edu-items = edu-items + "- *Honors*: " + edu.honors.join(", ") + "\n"}
-            if ("courses" in edu) and (edu.courses != none) {edu-items = edu-items + "- *Courses*: " + edu.courses.join(", ") + "\n"}
+            if ("honors" in edu) and (edu.honors != none) and (edu.honors.len() > 0) {edu-items = edu-items + "- *Honors*: " + edu.honors.join(", ") + "\n"}
+            if ("courses" in edu) and (edu.courses != none) and (edu.courses.len() > 0) {edu-items = edu-items + "- *Courses*: " + edu.courses.join(", ") + "\n"}
             if ("highlights" in edu) and (edu.highlights != none) {
                 for hi in edu.highlights {
                     edu-items = edu-items + "- " + hi + "\n"
@@ -276,7 +276,7 @@
 }
 
 #let cvprojects(info, title: "Projects", isbreakable: true) = {
-    if ("projects" in info) and (info.projects != none) {block[
+    if ("projects" in info) and (info.projects != none) and (info.projects.len() > 0) {block[
         == #title
         #for project in info.projects {
             // Parse ISO date strings into datetime objects
@@ -301,7 +301,7 @@
 }
 
 #let cvawards(info, title: "Honors and Awards", isbreakable: true) = {
-    if ("awards" in info) and (info.awards != none) {block[
+    if ("awards" in info) and (info.awards != none) and (info.awards.len() > 0) {block[
         == #title
         #for award in info.awards {
             // Parse ISO date strings into datetime objects
@@ -328,7 +328,7 @@
 }
 
 #let cvcertificates(info, title: "Licenses and Certifications", isbreakable: true) = {
-    if ("certificates" in info) and (info.certificates != none) {block[
+    if ("certificates" in info) and (info.certificates != none) and (info.certificates.len() > 0) {block[
         == #title
 
         #for cert in info.certificates {
@@ -354,7 +354,7 @@
 }
 
 #let cvpublications(info, title: "Research and Publications", isbreakable: true) = {
-    if ("publications" in info) and (info.publications != none) {block[
+    if ("publications" in info) and (info.publications != none) and (info.publications.len() > 0) {block[
         == #title
         #for pub in info.publications {
             // Parse ISO date strings into datetime objects
@@ -400,7 +400,7 @@
 }
 
 #let cvreferences(info, title: "References", isbreakable: true) = {
-    if ("references" in info) and (info.references != none) {block[
+    if ("references" in info) and (info.references != none) and (info.references.len() > 0) {block[
         == #title
         #for ref in info.references {
             block(width: 100%, breakable: isbreakable)[
@@ -428,13 +428,6 @@
     headingsmallcaps: false, // bool
     sendnote: false,         // bool. set to false to have sideways endnote
 )
-
-// setrules and showrules can be overridden by re-declaring it here
-// #let setrules(doc) = {
-//      // add custom document style rules here
-//
-//      doc
-// }
 
 #let customrules(doc) = {
     // add custom document style rules here
