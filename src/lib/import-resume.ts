@@ -109,8 +109,10 @@ export class ImportResume {
     const llmHandler = store.get(llmHandlerAtom);
     const document = store.get(documentAtom);
     const resumeData = await generateObject({
+      mode: "json",
       model: llmHandler.model,
       schema: ResumeDataSchema,
+      maxRetries: 3,
       prompt:
         "Extract the resume data from the text, for the URL Fields populate it with any random valid links, dates are required in YYYY-MM-DD format, add random valid dates wherever required" +
         "The text is: " +

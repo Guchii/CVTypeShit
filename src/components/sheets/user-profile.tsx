@@ -30,7 +30,7 @@ type UserProfileSheetProps = {
 
 const importResumeAtom = atom<ImportResume | null>(null);
 
-const triggerImportResumeAtom = atom(null, (get, set) => {
+export const triggerImportResumeAtom = atom(null, (get, set) => {
   let importResume = get(importResumeAtom);
   if (importResume) {
     importResume.triggerImportResume();
@@ -60,6 +60,9 @@ export default function UserProfileSheet({
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
+        onOpenAutoFocus={(e) => {
+          e.preventDefault();
+        }}
         onPointerDownOutside={(e) => {
           if (!_.isEmpty(formControl.current?._formState.dirtyFields)) {
             toast.success("Anna you have unsaved changes");

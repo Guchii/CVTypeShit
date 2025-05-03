@@ -6,9 +6,6 @@ import z, { ZodSchema } from "zod";
 import { ResumeData, ResumeDataSchema } from "./types/resume-data";
 import { TypstDocument } from "./typst";
 
-const defaultYaml = `personal:
-  name: Add Your Name`;
-
 export class Template1 extends TypstDocument {
   private _data: ResumeData;
   constructor(template = "", yaml = "") {
@@ -45,6 +42,7 @@ export class Template1 extends TypstDocument {
   }
 
   getTools() {
+    return {};
     const tools: ToolSet = {
       getPersonalData: tool({
         description: "Get Existing personal data in the resume",

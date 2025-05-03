@@ -1,8 +1,15 @@
 import type React from "react";
 
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
-import { CornerDownLeft, RefreshCcw } from "lucide-react";
+import { ArrowUp, AtSign, RefreshCcw, Square } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  PromptInput,
+  PromptInputAction,
+  PromptInputActions,
+  PromptInputTextarea,
+} from "@/components/ui/prompt-input";
+
 import { atom, useAtom, useAtomValue, useSetAtom } from "jotai";
 import startCase from "lodash.startcase";
 import {
@@ -10,8 +17,8 @@ import {
   llmHandlerAtom,
   activeLLMConfigAtom,
   documentAtom,
+  llmSheetOpenAtom,
 } from "@/lib/atoms";
-import { ChatInput } from "./ui/chat/chat-input";
 import { ChatMessageList } from "./ui/chat/chat-message-list";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -24,6 +31,8 @@ import {
 import { atomWithStorage, RESET } from "jotai/utils";
 
 import { ToolResult } from "ai";
+import { PromptSuggestion } from "./ui/prompt-suggestion";
+import { triggerImportResumeAtom } from "./sheets/user-profile";
 
 const messagesAtom = atomWithStorage<Message[]>("messages", [
   {
@@ -117,6 +126,10 @@ export default function ChatInterface() {
   const [input, setInput] = useState("");
   const llmConfig = useAtomValue(activeLLMConfigAtom);
   const llmHandler = useAtomValue(llmHandlerAtom);
+  const setLlmSheetOpen = useSetAtom(llmSheetOpenAtom);
+  const triggerImportResume = useSetAtom(triggerImportResumeAtom);
+
+  const abortController = useRef<AbortController>(new AbortController());
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -139,6 +152,10 @@ export default function ChatInterface() {
   const messageCount = messages.length;
 
   const handleGeneration = useCallback(async () => {
+    if (abortController.current.signal.aborted) {
+      abortController.current = new AbortController();
+    }
+
     setLastAIMessage((prev) => ({
       ...prev,
       status: "loading",
@@ -146,6 +163,7 @@ export default function ChatInterface() {
     const result = llmHandler.generateStream({
       messages,
       tools: tools,
+      abortSignal: abortController.current.signal,
       toolCallStreaming: true,
       maxSteps: 2,
       onFinish: (e) => {
@@ -236,8 +254,8 @@ export default function ChatInterface() {
       handleGeneration();
   }, [messageCount, handleGeneration]);
 
-  const handleSendMessage = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSendMessage = async (e?: React.FormEvent) => {
+    e?.preventDefault();
 
     if (!input.trim()) return;
 
@@ -253,11 +271,15 @@ export default function ChatInterface() {
 
   const setUserSheetOpen = useSetAtom(userSheetOpenAtom);
 
+  const isLoading =
+    lastAIMessage.status === "loading" || lastAIMessage.status === "streaming";
+
   return (
     <div className="flex flex-col h-[calc(100vh-4rem)] bg-dark-100">
       <div className="flex-1 overflow-y-auto p-2">
         <ChatMessageList smooth>
-          {messages.filter((message) => message.role !== "system").length === 0 && (
+          {messages.filter((message) => message.role !== "system").length ===
+            0 && (
             <div className="w-full bg-background shadow-md rounded-lg flex flex-col overflow-hidden">
               <h1 className="font-bold text-4xl md:text-5xl leading-tight">
                 Resume Builder
@@ -333,49 +355,70 @@ export default function ChatInterface() {
               {lastAIMessage.status === "error" && (
                 <ChatBubbleAction
                   onClick={() => handleGeneration()}
-                  icon={
-                      <RefreshCcw className="size-3.5" />
-                  }
+                  icon={<RefreshCcw className="size-3.5" />}
                 />
               )}
             </ChatBubble>
           )}
         </ChatMessageList>
       </div>
-      <div className="p-4 border-t border-border">
-        <form onSubmit={handleSendMessage} className="flex gap-2">
-          <ChatInput
-            placeholder="Type your message here..."
-            className="min-h-12 resize-none rounded-lg bg-background border-0 p-3 shadow-none focus-visible:ring-0"
-            disabled={
-              lastAIMessage.status !== "complete" &&
-              lastAIMessage.status !== "error"
-            }
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.shiftKey) {
-                handleSendMessage(e);
-              }
+      <div className="p-4 space-y-2">
+        {messageCount - 1 === 0 && (
+          <PromptSuggestion
+            onClick={() => {
+              triggerImportResume();
             }}
+            className="rounded-none hover:border-ring hover:bg-accent/50 hover:text-white"
+          >
+            Import Resume
+          </PromptSuggestion>
+        )}
+        <PromptInput
+          value={input}
+          onValueChange={setInput}
+          isLoading={isLoading}
+          onSubmit={handleSendMessage}
+          className="w-full rounded-none"
+        >
+          <PromptInputTextarea
+            className="text-foreground"
+            placeholder="Tell about yourself or paste a JD or just ask a question"
           />
-          <div className="flex items-center p-3 pt-0">
-            <Button
-              disabled={
-                lastAIMessage.status !== "complete" &&
-                lastAIMessage.status !== "error"
-              }
-              size="sm"
-              className="ml-auto gap-1.5"
+          <PromptInputActions className="justify-end pt-2">
+            <PromptInputAction
+              tooltip={`${llmConfig.provider}/${llmConfig.model}`}
             >
-              Send Message
-              <CornerDownLeft className="size-3.5" />
-            </Button>
-          </div>
-        </form>
-        <div className="mt-2 text-xs text-muted-foreground">
-          Using {llmConfig.provider} with {llmConfig.model}
-        </div>
+              <Button
+                variant="default"
+                size="icon"
+                className="h-8 w-8 rounded-none"
+                onClick={() => setLlmSheetOpen(true)}
+              >
+                <AtSign className="size-5" />
+              </Button>
+            </PromptInputAction>
+            <PromptInputAction
+              tooltip={isLoading ? "Stop generation" : "Send message"}
+            >
+              <Button
+                variant="default"
+                size="icon"
+                className="h-8 w-8 rounded-none bg-accent text-accent-foreground hover:bg-accent/80"
+                onClick={
+                  isLoading
+                    ? () => abortController.current.abort()
+                    : handleSendMessage
+                }
+              >
+                {isLoading ? (
+                  <Square className="size-5 fill-current" />
+                ) : (
+                  <ArrowUp className="size-5" />
+                )}
+              </Button>
+            </PromptInputAction>
+          </PromptInputActions>
+        </PromptInput>
       </div>
     </div>
   );

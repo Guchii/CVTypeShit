@@ -8,11 +8,11 @@ interface ChatMessageListProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 const ChatMessageList = React.forwardRef<HTMLDivElement, ChatMessageListProps>(
-  ({ className, children, smooth = false, ...props }, _ref) => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  ({ className, children, smooth = false, ...props }, _) => {
     const {
       scrollRef,
       isAtBottom,
-      autoScrollEnabled,
       scrollToBottom,
       disableAutoScroll,
     } = useAutoScroll({
@@ -39,7 +39,7 @@ const ChatMessageList = React.forwardRef<HTMLDivElement, ChatMessageListProps>(
             }}
             size="icon"
             variant="outline"
-            className="absolute bottom-2 left-1/2 transform -translate-x-1/2 inline-flex rounded-full shadow-md"
+            className="absolute bottom-2 left-1/2 transform bg-background text-foreground -translate-x-1/2 inline-flex rounded-full shadow-md"
             aria-label="Scroll to bottom"
           >
             <ArrowDown className="h-4 w-4" />

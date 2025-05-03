@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef } from "react";
 import { Button } from "./ui/button";
-import { Download } from "lucide-react";
+import { Download, Rows4 } from "lucide-react";
 import { useAtomValue } from "jotai";
 import { documentAtom } from "@/lib/atoms";
 import { Template1 } from "@/lib/template-1";
@@ -66,6 +66,14 @@ function ResumePreview() {
     <div className="h-[90%] w-full bg-white overflow-auto my-4 rounded-lg shadow-xl max-w-3xl mx-auto border border-zinc-200">
       <div ref={contentRef} className="w-full bg-white [&>svg]:w-full" />
       <div className="fixed top-0 right-0">
+        <Button
+          className="hover:scale-125 origin-top-right ease-[cubic-bezier(0.85,0,0.15,1)] duration-300"
+          variant="default"
+          size="sm"
+        >
+          <Rows4 className="h-4 w-4 mr-2" />
+          Configure Sections
+        </Button>
         <Button
           onClick={handleExportPDF}
           className="hover:scale-125 origin-top-right ease-[cubic-bezier(0.85,0,0.15,1)] duration-300"
