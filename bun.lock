@@ -8,9 +8,9 @@
         "@autoform/react": "^3.0.0",
         "@fontsource/figtree": "^5.2.6",
         "@hookform/resolvers": "^5.0.1",
-        "@myriaddreamin/typst-ts-renderer": "^0.5.5-rc7",
-        "@myriaddreamin/typst-ts-web-compiler": "^0.5.5-rc7",
-        "@myriaddreamin/typst.ts": "^0.5.5-rc7",
+        "@myriaddreamin/typst-ts-renderer": "0.5.5-rc4",
+        "@myriaddreamin/typst-ts-web-compiler": "0.5.5-rc4",
+        "@myriaddreamin/typst.ts": "0.5.5-rc4",
         "@radix-ui/react-alert-dialog": "^1.1.10",
         "@radix-ui/react-avatar": "^1.1.4",
         "@radix-ui/react-checkbox": "^1.2.3",
@@ -227,11 +227,11 @@
 
     "@jridgewell/trace-mapping": ["@jridgewell/trace-mapping@0.3.25", "", { "dependencies": { "@jridgewell/resolve-uri": "^3.1.0", "@jridgewell/sourcemap-codec": "^1.4.14" } }, "sha512-vNk6aEwybGtawWmy/PzwnGDOjCkLWSD2wqvjGGAgOAwCGWySYXfYoxt00IJkTF+8Lb57DwOb3Aa0o9CApepiYQ=="],
 
-    "@myriaddreamin/typst-ts-renderer": ["@myriaddreamin/typst-ts-renderer@0.5.5-rc7", "", {}, "sha512-DVMr2dVVhvMcKhRvveetdhPMwvr0Ck5hHGPAOmf0Z6l5QKLUduJde+0ydo+SHifPsd6N67ZJnH5bNxHsO7hIhQ=="],
+    "@myriaddreamin/typst-ts-renderer": ["@myriaddreamin/typst-ts-renderer@0.5.5-rc4", "", {}, "sha512-7jq5JTrskC43103GpUpQWu2mrSaqJm1H/1f4vHCKM1gPxoHO2YnzQ6SU2qHUlGUa0gw3HL+WjlVlpUW4xceVbg=="],
 
-    "@myriaddreamin/typst-ts-web-compiler": ["@myriaddreamin/typst-ts-web-compiler@0.5.5-rc7", "", {}, "sha512-dFS47UwVcOscGx6+9Ytn/QAKhHcuuG6K+zkAJO0Iw4j+4OHpu+VbZLUh3+6M6Bfl6TzzQ3fsBlgqgVF6UtfNug=="],
+    "@myriaddreamin/typst-ts-web-compiler": ["@myriaddreamin/typst-ts-web-compiler@0.5.5-rc4", "", {}, "sha512-oCFu7+NjMueoAB+Hs1T/NjhF9ZVdfOKxWlyc0ErhSZr434zORnfLfiAnhy7pZqrH/1H0DMaeTqoS/8JznlrwUw=="],
 
-    "@myriaddreamin/typst.ts": ["@myriaddreamin/typst.ts@0.5.5-rc7", "", { "dependencies": { "idb": "^7.1.1" }, "peerDependencies": { "@myriaddreamin/typst-ts-renderer": "^0.5.5-rc7", "@myriaddreamin/typst-ts-web-compiler": "^0.5.5-rc7" }, "optionalPeers": ["@myriaddreamin/typst-ts-renderer", "@myriaddreamin/typst-ts-web-compiler"] }, "sha512-ATGhPQSoIAThRZlqcdBkCROso7UQBV4vEmE8FQZYDcOQ12JpbkJUMop/3UV0kdRhJ1XzbJxckztFxWUmDbF9/g=="],
+    "@myriaddreamin/typst.ts": ["@myriaddreamin/typst.ts@0.5.5-rc4", "", { "dependencies": { "idb": "^7.1.1" }, "peerDependencies": { "@myriaddreamin/typst-ts-renderer": "^0.5.5-rc4", "@myriaddreamin/typst-ts-web-compiler": "^0.5.5-rc4" }, "optionalPeers": ["@myriaddreamin/typst-ts-renderer", "@myriaddreamin/typst-ts-web-compiler"] }, "sha512-/DP4vg7+R/IS8PsA8STe0vSM3tpaJ8+5RKpPZGd+D3YXXAGs+QCeyRbsLbZmL3/vj6pkzC7VMcyaT2sVo8mAvg=="],
 
     "@napi-rs/canvas": ["@napi-rs/canvas@0.1.69", "", { "optionalDependencies": { "@napi-rs/canvas-android-arm64": "0.1.69", "@napi-rs/canvas-darwin-arm64": "0.1.69", "@napi-rs/canvas-darwin-x64": "0.1.69", "@napi-rs/canvas-linux-arm-gnueabihf": "0.1.69", "@napi-rs/canvas-linux-arm64-gnu": "0.1.69", "@napi-rs/canvas-linux-arm64-musl": "0.1.69", "@napi-rs/canvas-linux-riscv64-gnu": "0.1.69", "@napi-rs/canvas-linux-x64-gnu": "0.1.69", "@napi-rs/canvas-linux-x64-musl": "0.1.69", "@napi-rs/canvas-win32-x64-msvc": "0.1.69" } }, "sha512-ydvNeJMRm+l3T14yCoUKqjYQiEdXDq1isznI93LEBGYssXKfSaLNLHOkeM4z9Fnw9Pkt2EKOCAtW9cS4b00Zcg=="],
 

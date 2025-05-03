@@ -3,12 +3,12 @@ import { ToolSet } from "ai";
 import { z, ZodSchema } from "zod";
 
 $typst.setCompilerInitOptions({
-  getModule: () =>
-    "https://cdn.jsdelivr.net/npm/@myriaddreamin/typst-ts-web-compiler/pkg/typst_ts_web_compiler_bg.wasm",
+  getModule: () => new URL("@myriaddreamin/typst-ts-web-compiler/pkg/typst_ts_web_compiler_bg.wasm", import.meta.url),
 });
+
 $typst.setRendererInitOptions({
   getModule: () =>
-    "https://cdn.jsdelivr.net/npm/@myriaddreamin/typst-ts-renderer/pkg/typst_ts_renderer_bg.wasm",
+    new URL("@myriaddreamin/typst-ts-renderer/pkg/typst_ts_renderer_bg.wasm", import.meta.url)
 });
 
 type TypstFile = {
