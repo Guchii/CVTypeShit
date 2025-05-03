@@ -102,7 +102,8 @@ export default function Dashboard() {
           <ChatInterface />
         </div>
         {/* Right side - Resume Preview */}
-        <div className="w-[650px] bg-dark-300 p-6 grid place-items-center">
+        <div className="w-[650px] bg-dark-300 relative p-6 grid place-items-center">
+          {/* <div className="loader-cool absolute top-1/2 left-1/2 -translate-x-[50%] -translate-y-[50%]"/> */}
           <ResumePreview />
         </div>
         {/* Sheets */}

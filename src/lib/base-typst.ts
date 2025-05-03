@@ -138,11 +138,6 @@ export class BaseTypstDocument {
     }
   }
 
-  async resetDocument() {
-    this.mainContent = "";
-    indexedDB.deleteDatabase("RESUME_MASTI");
-  }
-
   subscribeToChanges(observer: (content: string) => void): void {
     this.observers.push(observer);
   }

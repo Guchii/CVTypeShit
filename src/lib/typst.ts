@@ -79,4 +79,16 @@ export class TypstDocument extends BaseTypstDocument {
   getDataSchema(): ZodSchema {
     return ResumeDataSchema.deepPartial();
   }
+
+  async resetDocument() {
+    await new Promise((resolve, reject) => {
+      const requst = indexedDB.deleteDatabase("RESUME_MASTI");
+      requst.onsuccess = () => {
+        resolve(true);
+      };
+      requst.onerror = () => {
+        reject(new Error("Failed to reset the database"));
+      }
+    });
+  }
 }
