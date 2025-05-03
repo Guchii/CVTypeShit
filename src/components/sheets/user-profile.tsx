@@ -15,7 +15,7 @@ import { useMemo, useRef } from "react";
 import { atom, useAtomValue, useSetAtom } from "jotai";
 import { documentAtom } from "@/lib/atoms";
 import { Button } from "../ui/button";
-import { Template1 } from "@/lib/template-1";
+import { TypstDocument } from "@/lib/typst";
 import _ from "lodash";
 import { toast } from "sonner";
 import { Control } from "react-hook-form";
@@ -112,7 +112,7 @@ export default function UserProfileSheet({
               id: "user-profile-form",
             }}
             onFormInit={(form) => {
-              if (activeDocument instanceof Template1) {
+              if (activeDocument instanceof TypstDocument) {
                 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                 //@ts-ignore
                 form.reset(activeDocument.data);
@@ -121,7 +121,7 @@ export default function UserProfileSheet({
             }}
             onSubmit={(data) => {
               try {
-                if (activeDocument instanceof Template1) {
+                if (activeDocument instanceof TypstDocument) {
                   const resumeData = activeDocument.data;
                   activeDocument.data = _.merge(resumeData, data);
                   onOpenChange(false);

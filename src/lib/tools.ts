@@ -1,9 +1,9 @@
 import { tool, ToolSet } from "ai";
-import { TypstDocument } from "./typst";
+import { BaseTypstDocument } from "./base-typst";
 import { z } from "zod";
 
 export class Tools {
-  constructor(private typstDocument: TypstDocument) {}
+  constructor(private typstDocument: BaseTypstDocument) {}
   private getCurrentData(): string {
     return this.typstDocument.getFile("/template.yml");
   }

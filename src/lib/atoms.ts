@@ -4,9 +4,8 @@ import { atomWithQuery } from "jotai-tanstack-query";
 import { atomWithStorage } from "jotai/utils";
 
 import { openAIHandler, PollinationsHandler } from "./llm";
-import { Template1 } from "./template-1";
-import { ResumeData } from "./types/resume-data";
 import { TypstDocument } from "./typst";
+import { ResumeData } from "./types/resume-data";
 
 // User profile atom using ResumeData type
 export const userAtom = atom<ResumeData>({
@@ -188,7 +187,7 @@ export const llmHandlerAtom = atom((get) => {
 });
 
 // Active Document State
-export const documentAtom = atom<TypstDocument>(new Template1());
+export const documentAtom = atom<TypstDocument>(new TypstDocument());
 
 // Sheets State
 export const userSheetOpenAtom = atom(false);

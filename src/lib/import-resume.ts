@@ -8,7 +8,7 @@ import {
 } from "pdfjs-dist/types/src/display/api";
 import { documentAtom, llmHandlerAtom } from "./atoms";
 import { generateObject } from "ai";
-import { Template1 } from "./template-1";
+import { TypstDocument } from "./typst";
 import { ResumeDataSchema } from "./types/resume-data";
 import { toast } from "sonner";
 
@@ -118,7 +118,7 @@ export class ImportResume {
         "The text is: " +
         this.extractedText,
     });
-    if (document instanceof Template1) {
+    if (document instanceof TypstDocument) {
       try {
         console.log(resumeData.object)
         document.data = resumeData.object;

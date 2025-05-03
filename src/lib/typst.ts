@@ -1,96 +1,62 @@
-import { $typst } from "@myriaddreamin/typst.ts/dist/esm/contrib/snippet.mjs";
 import { ToolSet } from "ai";
-import { z, ZodSchema } from "zod";
+import { parse, stringify } from "yaml";
+import { ZodSchema } from "zod";
 
-$typst.setCompilerInitOptions({
-  getModule: () => new URL("@myriaddreamin/typst-ts-web-compiler/pkg/typst_ts_web_compiler_bg.wasm", import.meta.url),
-});
+import { ResumeData, ResumeDataSchema } from "./types/resume-data";
+import { BaseTypstDocument } from "./base-typst";
 
-$typst.setRendererInitOptions({
-  getModule: () =>
-    new URL("@myriaddreamin/typst-ts-renderer/pkg/typst_ts_renderer_bg.wasm", import.meta.url)
-});
-
-type TypstFile = {
-  path: string;
-  content: string;
-};
-
-export class TypstDocument {
-  private typst: typeof $typst;
-  private observers: ((content: string) => void)[] = [];
-  private filesContent: Map<string, string> = new Map();
-
-  /**
-   *
-   * @param mainContent contents for the file /main.typ
-   * @param files additional shadow files to be mapped in the typst compiler
-   */
-  constructor(private mainContent: string, files: TypstFile[]) {
-    this.typst = $typst;
-    files.map((file) => {
-      this.filesContent.set(file.path, file.content);
-      this.typst.mapShadow(file.path, new TextEncoder().encode(file.content));
-    });
-    console.log(this)
+export class TypstDocument extends BaseTypstDocument {
+  private _data: ResumeData;
+  constructor(template = "", yaml = "", private templateName = "template-1") {
+    super(template, [
+      {
+        content: yaml,
+        path: "/template.yml",
+      },
+    ]);
+    this._data = parse(yaml);
   }
 
-  getContent(): string {
-    return this.mainContent;
-  }
-
-  getFile(path: string): string {
-    if (this.filesContent.has(path)) {
-      return this.filesContent.get(path) as string;
+  async fetchTemplateAndData() {
+    const templateResponse = await fetch(`/templates/${this.templateName}/main.typ`);
+    let templateText = await templateResponse.text();
+    if (templateText) {
+      const regex = /(#let cvdata = yaml\(")\.\//g;
+      templateText = templateText.replace(regex, "$1/");
     }
-    throw new Error(`File ${path} not found`);
+
+    const dataResponse = await fetch(`/templates/${this.templateName}/template.yml`);
+    const dataText = await dataResponse.text();
+
+    this.updateDocument(templateText);
+    this.replaceData(dataText);
   }
 
-  async compileToPdf(): Promise<Uint8Array | undefined> {
-    return await this.typst.pdf({ mainContent: this.mainContent });
+  async cleanup() {
+    this.updateDocument("");
+    this.updateFile("/template.yml", "");
   }
 
-  async compileToSVG(): Promise<string> {
-    return await this.typst.svg({ mainContent: this.mainContent });
+  get data() {
+    return this._data;
   }
 
-  updateDocument(newDocument: string): void {
-    this.mainContent = newDocument;
-    this.observers.forEach((observer) => observer(this.mainContent));
+  set data(data: ResumeData) {
+    this._data = data;
+    this.updateFile("/template.yml", stringify(this._data));
   }
 
-  private updateFileContent(path: string, newContent: string): void {
-    this.typst.unmapShadow(path);
-    this.typst.mapShadow(path, new TextEncoder().encode(newContent));
+  replaceData(yaml: string) {
+    this._data = parse(yaml);
+    this.updateFile("/template.yml", yaml);
   }
 
-  async updateFile(path: string, newContent: string) {
-    const oldContent = this.filesContent.get(path);
-    this.updateFileContent(path, newContent);
-    try {
-      await this.compileToSVG()
-      this.observers.forEach((observer) => observer(this.mainContent));
-    } catch (e) {
-      this.updateFileContent(path, oldContent as string);
-      throw new Error(
-        `Error updating file ${path}: ${e}. The file has been reverted to its previous state.`
-      );
-    }
-  }
-
-  subscribeToChanges(observer: (content: string) => void): void {
-    this.observers.push(observer);
-  }
-
-  unsubscribeFromChanges(observer: () => void): void {
-    this.observers = this.observers.filter((obs) => obs !== observer);
-  }
-
-  getTools(): ToolSet {
-    return {};
+  getTools() {
+    const tools: ToolSet = {};
+    return tools;
   }
 
   getDataSchema(): ZodSchema {
-    return z.object({});
+    return ResumeDataSchema.deepPartial();
   }
 }

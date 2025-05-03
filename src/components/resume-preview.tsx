@@ -3,22 +3,6 @@ import { Button } from "./ui/button";
 import { Download, Rows4 } from "lucide-react";
 import { useAtomValue } from "jotai";
 import { documentAtom } from "@/lib/atoms";
-import { Template1 } from "@/lib/template-1";
-
-const fetchTemplateAndData = async (document: Template1) => {
-  const templateResponse = await fetch("/templates/template-1/main.typ");
-  let templateText = await templateResponse.text();
-  if (templateText) {
-    const regex = /(#let cvdata = yaml\(")\.\//g;
-    templateText = templateText.replace(regex, "$1/");
-  }
-
-  const dataResponse = await fetch("/templates/template-1/template.yml");
-  const dataText = await dataResponse.text();
-
-  document.updateDocument(templateText);
-  document.replaceData(dataText);
-};
 
 function ResumePreview() {
   const typstDocument = useAtomValue(documentAtom);
@@ -52,13 +36,9 @@ function ResumePreview() {
   }, []);
 
   useEffect(() => {
-    console.log("Fetching template and data");
-    if (typstDocument instanceof Template1) {
-      fetchTemplateAndData(typstDocument);
-    }
+    typstDocument.fetchTemplateAndData();
     return () => {
-      typstDocument.updateDocument("");
-      typstDocument.updateFile("/template.yml", "");
+      typstDocument.cleanup();
     };
   }, [typstDocument]);
 
