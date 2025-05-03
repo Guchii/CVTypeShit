@@ -18,18 +18,38 @@ export class TypstDocument extends BaseTypstDocument {
   }
 
   async fetchTemplateAndData() {
-    const templateResponse = await fetch(`/templates/${this.templateName}/main.typ`);
-    let templateText = await templateResponse.text();
-    if (templateText) {
-      const regex = /(#let cvdata = yaml\(")\.\//g;
-      templateText = templateText.replace(regex, "$1/");
+    try {
+      const template = await this.fs.promises.readFile("/main.typ", {
+        encoding: "utf8",
+      });
+      const data = await this.fs.promises.readFile("/template.yml", {
+        encoding: "utf8",
+      });
+      if (data) {
+        this.replaceData(data);
+      }
+      if (!data || !template) {
+        throw new Error("No content found in /main.typ");
+      }
+    } catch {
+      const templateResponse = await fetch(
+        `/templates/${this.templateName}/main.typ`
+      );
+
+      let templateText = await templateResponse.text();
+      if (templateText) {
+        const regex = /(#let cvdata = yaml\(")\.\//g;
+        templateText = templateText.replace(regex, "$1/");
+      }
+
+      const dataResponse = await fetch(
+        `/templates/${this.templateName}/template.yml`
+      );
+      const dataText = await dataResponse.text();
+
+      this.updateDocument(templateText);
+      this.replaceData(dataText);
     }
-
-    const dataResponse = await fetch(`/templates/${this.templateName}/template.yml`);
-    const dataText = await dataResponse.text();
-
-    this.updateDocument(templateText);
-    this.replaceData(dataText);
   }
 
   async cleanup() {

@@ -4,8 +4,8 @@ import { z } from "zod";
 
 export class Tools {
   constructor(private typstDocument: BaseTypstDocument) {}
-  private getCurrentData(): string {
-    return this.typstDocument.getFile("/template.yml");
+  private async getCurrentData() {
+    return await this.typstDocument.getFile("/template.yml");
   }
   private updateCurrentData(newContent: string): void {
     this.typstDocument.updateFile("/template.yml", newContent);

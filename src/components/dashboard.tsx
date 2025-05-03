@@ -1,6 +1,6 @@
 "use client";
 
-import { BrainCog, DatabaseZap, LucideRefreshCcw } from "lucide-react";
+import { BrainCog, DatabaseZap, Folders, LucideRefreshCcw } from "lucide-react";
 import ChatInterface, { resetMessagesAtom } from "@/components/chat-interface";
 import ResumePreview from "@/components/resume-preview";
 import UserProfileSheet from "@/components/sheets/user-profile";
@@ -13,7 +13,11 @@ import {
   TooltipTrigger,
 } from "./ui/tooltip";
 import { atom, useAtom, useSetAtom } from "jotai";
-import { llmSheetOpenAtom, userSheetOpenAtom } from "@/lib/atoms";
+import {
+  filesSheetOpenAtom,
+  llmSheetOpenAtom,
+  userSheetOpenAtom,
+} from "@/lib/atoms";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -25,12 +29,14 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Toaster } from "sonner";
+import FilesSheet from "./sheets/files";
 
 const resetMessagesAlertAtom = atom(false);
 
 export default function Dashboard() {
   const [userSheetOpen, setUserSheetOpen] = useAtom(userSheetOpenAtom);
   const [llmSheetOpen, setLlmSheetOpen] = useAtom(llmSheetOpenAtom);
+  const [filesSheetOpen, setFilesSheetOpen] = useAtom(filesSheetOpenAtom);
   const setResetMessagesAlert = useSetAtom(resetMessagesAlertAtom);
 
   return (
@@ -40,18 +46,18 @@ export default function Dashboard() {
         <div className="flex flex-col flex-1 overflow-hidden border-r border-zinc-800 bg-dark-100">
           <div className="flex items-center justify-between p-4 border-b border-border">
             <div className="flex items-center gap-2">
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() => setUserSheetOpen(true)}
-                    >
-                      <DatabaseZap className="h-5 w-5" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>Data</TooltipContent>
-                </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setUserSheetOpen(true)}
+                  >
+                    <DatabaseZap className="h-5 w-5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Data</TooltipContent>
+              </Tooltip>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
@@ -64,6 +70,20 @@ export default function Dashboard() {
                 </TooltipTrigger>
                 <TooltipContent>LLM Settings</TooltipContent>
               </Tooltip>
+              {import.meta.env.DEV && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => setFilesSheetOpen(true)}
+                    >
+                      <Folders className="h-5 w-5" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Files</TooltipContent>
+                </Tooltip>
+              )}
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
@@ -91,6 +111,7 @@ export default function Dashboard() {
           onOpenChange={setUserSheetOpen}
         />
         <LLMConfigSheet open={llmSheetOpen} onOpenChange={setLlmSheetOpen} />
+        <FilesSheet open={filesSheetOpen} onOpenChange={setFilesSheetOpen} />
       </div>
       <ResetAlertDialog />
     </TooltipProvider>

@@ -112,12 +112,10 @@ export default function UserProfileSheet({
               id: "user-profile-form",
             }}
             onFormInit={(form) => {
-              if (activeDocument instanceof TypstDocument) {
                 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                 //@ts-ignore
                 form.reset(activeDocument.data);
                 formControl.current = form.control;
-              }
             }}
             onSubmit={(data) => {
               try {

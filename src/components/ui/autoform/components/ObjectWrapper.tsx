@@ -19,7 +19,6 @@ export const ObjectWrapper: React.FC<ObjectWrapperProps> = ({
   };
   const isOpen = open ? "rotate-180" : "rotate-0";
   const Label = label;
-  console.log(field.key);
   const isAnArrayElement = field.key === "0";
   return (
     <Collapsible open={open} onOpenChange={handleToggle}>

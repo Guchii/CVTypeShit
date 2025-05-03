@@ -7,7 +7,8 @@ export const StringField: React.FC<AutoFormFieldProps> = ({
   error,
   id,
 }) => {
-  const { ...props } = inputProps;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { key, ...props } = inputProps;
 
   return (
     <Input id={id} className={error ? "border-destructive" : ""} {...props} />

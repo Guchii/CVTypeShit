@@ -192,6 +192,7 @@ export const documentAtom = atom<TypstDocument>(new TypstDocument());
 // Sheets State
 export const userSheetOpenAtom = atom(false);
 export const llmSheetOpenAtom = atom(false);
+export const filesSheetOpenAtom = atom(false);
 
 // Query Atoms
 export const modelsAtom = atomWithQuery((get) => {
