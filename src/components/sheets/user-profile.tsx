@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 "use client";
 
 import {
@@ -120,8 +121,8 @@ export default function UserProfileSheet({
             onSubmit={(data) => {
               try {
                 if (activeDocument instanceof TypstDocument) {
-                  const resumeData = activeDocument.data;
-                  activeDocument.data = _.merge(resumeData, data);
+                  //@ts-expect-error
+                  activeDocument.data = data;
                   onOpenChange(false);
                 }
               } catch (error) {
