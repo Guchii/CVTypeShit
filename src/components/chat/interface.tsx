@@ -18,7 +18,7 @@ import {
   documentAtom,
   llmSheetOpenAtom,
 } from "@/lib/atoms";
-import { ChatMessageList } from "./ui/chat/chat-message-list";
+import { ChatMessageList } from "../ui/chat/chat-message-list";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
@@ -26,15 +26,15 @@ import {
   ChatBubble,
   ChatBubbleAction,
   ChatBubbleMessage,
-} from "./ui/chat/chat-bubble";
+} from "../ui/chat/chat-bubble";
 import { atomWithStorage, RESET } from "jotai/utils";
 
 import { CoreMessage } from "ai";
-import { PromptSuggestion } from "./ui/prompt-suggestion";
-import { triggerImportResumeAtom } from "./sheets/user-profile";
-import _, { startCase } from "lodash";
+import { PromptSuggestion } from "../ui/prompt-suggestion";
+import { triggerImportResumeAtom } from "../sheets/user-profile";
+import ChatMessage from "./message";
 
-const messagesAtom = atomWithStorage<CoreMessage[]>("messages", [
+export const messagesAtom = atomWithStorage<CoreMessage[]>("messages", [
   {
     role: "system",
     content: `Role:
@@ -152,46 +152,11 @@ export default function ChatInterface() {
       abortSignal: abortController.current.signal,
       maxSteps: 2,
       onFinish: (e) => {
-        console.log("Finished", e);
         setLastAIMessage({
           content: "",
           status: "complete",
         });
         setMessages((prev) => [...prev, ...e.response.messages]);
-        return;
-        setInput("");
-        if (e.finishReason === "tool-calls") {
-          setMessages((prev) => {
-            return [
-              ...prev,
-              {
-                id: Date.now().toString(),
-                content: "Ran a tool for you :)",
-                role: "assistant",
-                timestamp: new Date(),
-                tools: e.toolResults,
-                tool_calls: e.toolCalls,
-              },
-            ];
-          });
-        } else {
-          setMessages((prev) => {
-            return [
-              ...prev,
-              {
-                id: Date.now().toString(),
-                content: e.text,
-                role: "assistant",
-                timestamp: new Date(),
-              },
-            ];
-          });
-        }
-        setLastAIMessage((prev) => ({
-          ...prev,
-          content: "",
-          status: "complete",
-        }));
       },
       onError: ({ error }) => {
         const errorMessage = error instanceof Error ? error.message : undefined;
@@ -300,58 +265,14 @@ export default function ChatInterface() {
               </div>
             </div>
           )}
-          {messages
-            .filter((message) => message.role !== "system")
-            .map((message, i) => (
-              <ChatBubble
-                key={i}
-                variant={message.role === "user" ? "sent" : "received"}
-              >
-                <ChatBubbleMessage
-                  variant={message.role === "user" ? "sent" : "received"}
-                >
-                  <Markdown remarkPlugins={[remarkGfm]}>
-                    {typeof message.content === "string" ? message.content : ""}
-                  </Markdown>
-                  {message.role === "assistant" &&
-                    (_.isArray(message.content) ? message.content : []).map(
-                      (toolCall, index) => {
-                        if ("toolName" in toolCall) {
-                          return (
-                            <div
-                              className="flex items-center gap-2"
-                              key={index}
-                            >
-                              <strong><span className="underline">{startCase(toolCall.toolName)}</span> Tool Request</strong>
-                              <img
-                                width={16}
-                                height={"auto"}
-                                src="https://emojicdn.elk.sh/🙋‍♀️"
-                              />
-                            </div>
-                          );
-                        }
-                        return (
-                            _.isString(message.content) ? message.content : ""
-                        );
-                      }
-                    )}
-                  {message.role === "tool" &&
-                    message.content.map((toolResult, index) => {
-                      return (
-                        <div className="flex items-center gap-2" key={index}>
-                          <strong>{startCase(toolResult.toolName)}</strong>
-                          <img
-                            width={16}
-                            height={"auto"}
-                            src="https://emojicdn.elk.sh/✅"
-                          />
-                        </div>
-                      );
-                    })}
-                </ChatBubbleMessage>
-              </ChatBubble>
-            ))}
+          {messages.map((message, i) => (
+            <ChatBubble
+              key={i}
+              variant={message.role === "user" ? "sent" : "received"}
+            >
+              <ChatMessage {...message} />
+            </ChatBubble>
+          ))}
           {lastAIMessage.status !== "complete" && (
             <ChatBubble variant="received">
               <ChatBubbleMessage variant="received">

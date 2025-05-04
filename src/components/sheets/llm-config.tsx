@@ -61,6 +61,7 @@ export default function LLMConfigSheet({
                   Pollinations (Free)
                 </SelectItem>
                 <SelectItem value="openai">OpenAI</SelectItem>
+                <SelectItem value="openrouter">OpenRouter</SelectItem>
                 <SelectItem value="openai-like">OpenAI Compatible</SelectItem>
               </SelectContent>
             </Select>
@@ -146,7 +147,7 @@ export default function LLMConfigSheet({
               <Input
                 id="endpoint"
                 value={llmConfig.endpoint || ""}
-                disabled={activeProvider === "pollinations"}
+                disabled={activeProvider !== "openai-like"}
                 onChange={(e) => setLlmConfig({ endpoint: e.target.value })}
                 placeholder="https://api.example.com/v1/chat/completions"
               />

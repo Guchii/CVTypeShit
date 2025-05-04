@@ -1,9 +1,10 @@
 import { atom } from "jotai";
+
 // Import the new type
 import { atomWithQuery } from "jotai-tanstack-query";
 import { atomWithStorage } from "jotai/utils";
 
-import { openAIHandler, PollinationsHandler } from "./llm";
+import { OpenAIHandler, OpenRouterHandler, PollinationsHandler } from "./llm";
 import { TypstDocument } from "./typst";
 import { ResumeData } from "./types/resume-data";
 
@@ -111,7 +112,11 @@ export const userAtom = atom<ResumeData>({
   references: [], // Added default
 });
 
-export type LLMProvider = "pollinations" | "openai" | "openai-like";
+export type LLMProvider =
+  | "pollinations"
+  | "openrouter"
+  | "openai"
+  | "openai-like";
 
 // LLM configuration atom
 export type LLMConfig = {
@@ -129,6 +134,13 @@ export const llmConfigAtom = atomWithStorage<Record<LLMProvider, LLMConfig>>(
       provider: "pollinations",
       model: "openai",
       endpoint: "https://text.pollinations.ai/openai",
+      apiKey: "",
+      temperature: 0.7,
+    },
+    openrouter: {
+      provider: "openrouter",
+      model: "mistralai/mistral-small-3.1-24b-instruct:free",
+      endpoint: "https://openrouter.ai/v1/",
       apiKey: "",
       temperature: 0.7,
     },
@@ -175,15 +187,23 @@ export const activeLLMConfigAtom = atom(
 export const llmHandlerAtom = atom((get) => {
   const activeProvider = get(activeLLMProviderAtom);
   const llmConfig = get(llmConfigAtom)[activeProvider];
-  if (activeProvider === "pollinations") {
-    return new PollinationsHandler(llmConfig.model, llmConfig.temperature);
+  switch (activeProvider) {
+    case "openrouter":
+      return new OpenRouterHandler({
+        model: llmConfig.model,
+        temperature: llmConfig.temperature,
+        apiKey: llmConfig.apiKey,
+      });
+    case "pollinations":
+      return new PollinationsHandler(llmConfig.model, llmConfig.temperature);
+    default:
+      return new OpenAIHandler({
+        model: llmConfig.model,
+        temperature: llmConfig.temperature,
+        apiKey: llmConfig.apiKey,
+        baseURL: llmConfig.endpoint,
+      });
   }
-  return new openAIHandler({
-    model: llmConfig.model,
-    temperature: llmConfig.temperature,
-    apiKey: llmConfig.apiKey,
-    baseURL: llmConfig.endpoint,
-  });
 });
 
 // Active Document State

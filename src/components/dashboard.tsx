@@ -1,7 +1,7 @@
 "use client";
 
 import { BrainCog, DatabaseZap, Folders, LucideRefreshCcw } from "lucide-react";
-import ChatInterface, { resetMessagesAtom } from "@/components/chat-interface";
+import ChatInterface, { resetMessagesAtom } from "@/components/chat/interface";
 import ResumePreview from "@/components/resume-preview";
 import UserProfileSheet from "@/components/sheets/user-profile";
 import LLMConfigSheet from "@/components/sheets/llm-config";

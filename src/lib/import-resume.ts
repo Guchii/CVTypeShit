@@ -8,7 +8,6 @@ import {
 } from "pdfjs-dist/types/src/display/api";
 import { documentAtom, llmHandlerAtom } from "./atoms";
 import { generateObject } from "ai";
-import { TypstDocument } from "./typst";
 import { ResumeDataSchema } from "./types/resume-data";
 import { toast } from "sonner";
 
@@ -108,24 +107,20 @@ export class ImportResume {
     const id = toast.loading("Extracting resume data...");
     const llmHandler = store.get(llmHandlerAtom);
     const document = store.get(documentAtom);
-    const resumeData = await generateObject({
-      mode: "json",
-      model: llmHandler.model,
-      schema: ResumeDataSchema,
-      maxRetries: 3,
-      prompt:
-        "Extract the resume data from the text, for the URL Fields populate it with any random valid links, dates are required in YYYY-MM-DD format, add random valid dates wherever required" +
-        "The text is: " +
-        this.extractedText,
-    });
-    if (document instanceof TypstDocument) {
-      try {
-        console.log(resumeData.object)
-        document.data = resumeData.object;
-      } catch (error) {
-        console.error("Error updating document data:", error);
-        toast.error("Failed to update resume data.");
-      }
+    try {
+      const resumeData = await generateObject({
+        mode: "json",
+        model: llmHandler.model,
+        schema: ResumeDataSchema,
+        prompt:
+          "Extract the resume data from the text, for the URL Fields populate it with any random valid links, dates are required in YYYY-MM-DD format, add random valid dates wherever required" +
+          "The text is: " +
+          this.extractedText,
+      });
+      document.data = resumeData.object;
+    } catch (error) {
+      console.error("Error updating document data:", error);
+      toast.error("Failed to update resume data.");
     }
     toast.dismiss(id);
   }
