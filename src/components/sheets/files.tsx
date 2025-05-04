@@ -39,7 +39,7 @@ export default function FilesSheet({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
         side="left"
-        className="w-[400px] gap-0 sm:w-[540px] bg-dark-100 border-zinc-800"
+        className="w-[400px] gap-0 sm:w-[540px] border-zinc-800"
       >
         <SheetHeader className="p-4">
           <SheetTitle className="text-4xl">

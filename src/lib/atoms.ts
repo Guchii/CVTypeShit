@@ -210,3 +210,5 @@ export const modelsAtom = atomWithQuery((get) => {
     refetchOnReconnect: false,
   };
 });
+
+export const eyeSaverModeAtom = atomWithStorage("eye-saver-mode", true);

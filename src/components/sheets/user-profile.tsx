@@ -73,7 +73,7 @@ export default function UserProfileSheet({
         side="left"
         className="max-w-[540px] border-zinc-800 sm:max-w-[640px] md:max-w-[720px]" // Increased width
       >
-        <SheetHeader className="p-4 bg-background">
+        <SheetHeader className="p-4">
           <SheetTitle className="text-4xl">Resume Data</SheetTitle>
           <SheetDescription className="text-sm text-muted-foreground">
             Fill in your details to create a personalized resume. You can chat
@@ -133,7 +133,7 @@ export default function UserProfileSheet({
             schema={schemaProvider}
           />
         </ScrollArea>
-        <SheetFooter className="flex justify-end p-6 bg-background">
+        <SheetFooter className="flex justify-end p-6">
           <Button type="submit" form="user-profile-form">
             Save
           </Button>

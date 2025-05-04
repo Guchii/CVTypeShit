@@ -43,6 +43,10 @@
   --color-dark-200: var(--dark-200);
   --color-dark-300: var(--dark-300);
   --color-dark-accent: var(--dark-accent);
+  --color-chat-background: var(--chat-background);
+  --color-chat-input-background: var(--chat-input-background);
+  --color-heading: var(--color-heading);
+  --color-chat-border: var(--chat-border);
   --animate-collapsible-up: collapsible-up 0.2s ease-out;
   --animate-collapsible-down: collapsible-down 0.2s ease-out;
 
@@ -66,8 +70,8 @@
 
 :root {
   --radius: 0rem;
-  --foreground: oklch(1 0 0);
-  --background: oklch(0.147 0.004 49.25);
+  --foreground: hsl(270 20% 97.8%);
+  --background: hsl(313.8 24.5% 10.4%);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.147 0.004 49.25);
   --popover: oklch(1 0 0);
@@ -78,7 +82,7 @@
   --secondary-foreground: oklch(0.216 0.006 56.043);
   --muted: oklch(0.97 0.001 106.424);
   --muted-foreground: oklch(0.553 0.013 58.071);
-  --accent: #cba6f7;
+  --accent: #e3bad1;
   --accent-foreground: oklch(0.216 0.006 56.043);
   --destructive: oklch(0.577 0.245 27.325);
   --border: oklch(0.923 0.003 48.717);
@@ -90,18 +94,23 @@
   --chart-3: oklch(0.398 0.07 227.392);
   --chart-4: oklch(0.828 0.189 84.429);
   --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.985 0.001 106.423);
-  --sidebar-foreground: oklch(0.147 0.004 49.25);
-  --sidebar-primary: oklch(0.216 0.006 56.043);
-  --sidebar-primary-foreground: oklch(0.985 0.001 106.423);
-  --sidebar-accent: oklch(0.97 0.001 106.424);
-  --sidebar-accent-foreground: oklch(0.216 0.006 56.043);
-  --sidebar-border: oklch(0.923 0.003 48.717);
-  --sidebar-ring: oklch(0.709 0.01 56.259);
+  --sidebar: hsl(240 2.6% 7.6%);
+  --sidebar-foreground: hsl(240 4.8% 95.9%);
+  --sidebar-primary: hsl(224.3 76.3% 48%);
+  --sidebar-primary-foreground: hsl(0 0% 100%);
+  --sidebar-accent: hsl(318.5 20.6% 12.4%);
+  --sidebar-accent-foreground: hsl(240 4.8% 95.9%);
+  --sidebar-border: hsl(0 0% 0%);
+  --sidebar-ring: hsl(333.3, 71.4%, 50.6%);
+  --gradient-noise-top: hsl(309 15% 9%);
+  --color-heading: hsl(328.2 45.9% 57.3%);
+  --chat-border: hsl(333.3 22% 16.1%);
   --dark-100: oklch(0.147 0.004 49.25);
   --dark-200: #181825;
   --dark-300: #11111b;
-  --dark-accent: #cba6f7;
+  --dark-accent: #e3bad1;
+  --chat-input-background: hsla(270, 10%, 20%, var(--blur-fallback, 0.4));
+  --chat-background: hsl(270 16.13% 12.16%);
 }
 
 .dark {
@@ -146,7 +155,7 @@
 @layer base {
   * {
     @apply border-border outline-ring/50;
-    box-sizing: border-box
+    box-sizing: border-box;
   }
   body {
     @apply bg-background text-foreground;
@@ -156,8 +165,18 @@
 
 @layer utilities {
   .hover\:mask {
-    -webkit-mask-image: linear-gradient(45deg,#000 25%,rgba(0,0,0,.2) 50%,#000 75%);
-    mask-image: linear-gradient(45deg,#000 25%,rgba(0,0,0,.2) 50%,#000 75%);
+    -webkit-mask-image: linear-gradient(
+      45deg,
+      #000 25%,
+      rgba(0, 0, 0, 0.2) 50%,
+      #000 75%
+    );
+    mask-image: linear-gradient(
+      45deg,
+      #000 25%,
+      rgba(0, 0, 0, 0.2) 50%,
+      #000 75%
+    );
     -webkit-mask-size: 800%;
     mask-size: 800%;
     -webkit-mask-position: 0;
@@ -165,21 +184,32 @@
   }
 
   .hover\:mask:hover {
-    transition: mask-position 2s ease,-webkit-mask-position 2s ease;
+    transition: mask-position 2s ease, -webkit-mask-position 2s ease;
     -webkit-mask-position: 120%;
     mask-position: 120%;
     opacity: 1;
   }
   .animate-shine {
-    animation: 2s shine cubic-bezier(0.85,0,0.15,1) infinite;
+    animation: 2s shine cubic-bezier(0.85, 0, 0.15, 1) infinite;
     border-style: inset;
   }
 }
 
 @keyframes shine {
-  0%, 100% {
-    -webkit-mask-image: linear-gradient(45deg,#000 25%,rgba(0,0,0,.2) 50%,#000 75%);
-    mask-image: linear-gradient(45deg,#000 25%,rgba(0,0,0,.2) 50%,#000 75%);
+  0%,
+  100% {
+    -webkit-mask-image: linear-gradient(
+      45deg,
+      #000 25%,
+      rgba(0, 0, 0, 0.2) 50%,
+      #000 75%
+    );
+    mask-image: linear-gradient(
+      45deg,
+      #000 25%,
+      rgba(0, 0, 0, 0.2) 50%,
+      #000 75%
+    );
     -webkit-mask-size: 800%;
     mask-size: 800%;
     -webkit-mask-position: 0;
@@ -198,12 +228,19 @@
   color: #000;
   border: 2px solid;
   box-sizing: border-box;
-  --c:radial-gradient(farthest-side,#0000 calc(100% - 3px),currentColor calc(100% - 2px) 98%,#0000);
-  background: var(--c),var(--c);
+  --c: radial-gradient(
+    farthest-side,
+    #0000 calc(100% - 3px),
+    currentColor calc(100% - 2px) 98%,
+    #0000
+  );
+  background: var(--c), var(--c);
   background-size: 23px 23px;
-  background-position: 0 0,12px 12px;
+  background-position: 0 0, 12px 12px;
   animation: l4 1s infinite;
 }
-@keyframes l4{
-  100% {background-position: -23px 0px,12px 35px}
+@keyframes l4 {
+  100% {
+    background-position: -23px 0px, 12px 35px;
+  }
 }

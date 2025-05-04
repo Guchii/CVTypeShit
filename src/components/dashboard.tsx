@@ -42,9 +42,9 @@ export default function Dashboard() {
   return (
     <TooltipProvider>
       <Toaster />
-      <div className="flex h-screen overflow-hidden bg-dark-200">
-        <div className="flex flex-col flex-1 overflow-hidden border-r border-zinc-800 bg-dark-100">
-          <div className="flex items-center justify-between p-4 border-b border-border">
+      <div className="flex h-screen overflow-hidden bg-sidebar">
+        <div className="flex flex-col flex-1 overflow-hidden">
+          <div className="flex items-center justify-between p-4">
             <div className="flex items-center gap-2">
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -102,8 +102,7 @@ export default function Dashboard() {
           <ChatInterface />
         </div>
         {/* Right side - Resume Preview */}
-        <div className="w-[650px] bg-dark-300 relative p-6 grid place-items-center">
-          {/* <div className="loader-cool absolute top-1/2 left-1/2 -translate-x-[50%] -translate-y-[50%]"/> */}
+        <div className="w-[650px] relative p-6 grid place-items-center">
           <ResumePreview />
         </div>
         {/* Sheets */}

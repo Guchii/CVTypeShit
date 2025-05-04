@@ -11,7 +11,6 @@ import {
 } from "@/components/ui/prompt-input";
 
 import { atom, useAtom, useAtomValue, useSetAtom } from "jotai";
-import startCase from "lodash.startcase";
 import {
   userSheetOpenAtom,
   llmHandlerAtom,
@@ -30,11 +29,12 @@ import {
 } from "./ui/chat/chat-bubble";
 import { atomWithStorage, RESET } from "jotai/utils";
 
-import { ToolResult } from "ai";
+import { CoreMessage } from "ai";
 import { PromptSuggestion } from "./ui/prompt-suggestion";
 import { triggerImportResumeAtom } from "./sheets/user-profile";
+import _, { startCase } from "lodash";
 
-const messagesAtom = atomWithStorage<Message[]>("messages", [
+const messagesAtom = atomWithStorage<CoreMessage[]>("messages", [
   {
     role: "system",
     content: `Role:
@@ -91,8 +91,6 @@ Greet briefly: "Hi! I’ll help you build your resume. Let’s start with your b
 Fetch existing data with getPersonalData. If none, proceed step-by-step.
 
 After collecting basics, ask: "Are you targeting a specific job? This helps tailor your resume."`,
-    id: Date.now().toString(),
-    timestamp: new Date(),
   },
 ]);
 
@@ -102,18 +100,6 @@ export const resetMessagesAtom = atom(
     set(messagesAtom, RESET);
   }
 );
-
-type Message = {
-  id: string;
-  content: string;
-  role: "user" | "assistant" | "system";
-  timestamp: Date;
-  tools?: ToolResult<
-    string,
-    object,
-    Record<string, unknown> & { success: boolean }
-  >[];
-};
 
 export default function ChatInterface() {
   const [messages, setMessages] = useAtom(messagesAtom);
@@ -164,10 +150,15 @@ export default function ChatInterface() {
       messages,
       tools: tools,
       abortSignal: abortController.current.signal,
-      toolCallStreaming: true,
-      maxSteps: 2,
+      maxSteps: 1,
       onFinish: (e) => {
-        console.log(e);
+        console.log("Finished", e);
+        setLastAIMessage({
+          content: "",
+          status: "complete",
+        });
+        setMessages((prev) => [...prev, ...e.response.messages]);
+        return;
         setInput("");
         if (e.finishReason === "tool-calls") {
           setMessages((prev) => {
@@ -179,6 +170,7 @@ export default function ChatInterface() {
                 role: "assistant",
                 timestamp: new Date(),
                 tools: e.toolResults,
+                tool_calls: e.toolCalls,
               },
             ];
           });
@@ -213,6 +205,7 @@ export default function ChatInterface() {
     for await (const part of result.fullStream) {
       switch (part.type) {
         case "text-delta": {
+          console.log("Text delta:", part.textDelta);
           setLastAIMessage((prev) => ({
             ...prev,
             content: prev.content + part.textDelta,
@@ -239,6 +232,10 @@ export default function ChatInterface() {
         }
         case "finish": {
           // handle finish here
+          console.log("Finished", part.finishReason);
+          if (part.finishReason === "tool-calls") {
+            console.log("Tool calls:", part);
+          }
           break;
         }
         case "error": {
@@ -259,11 +256,9 @@ export default function ChatInterface() {
 
     if (!input.trim()) return;
 
-    const userMessage: Message = {
-      id: Date.now().toString(),
+    const userMessage: CoreMessage = {
       content: input,
       role: "user",
-      timestamp: new Date(),
     };
 
     setMessages((prev) => [...prev, userMessage]);
@@ -275,17 +270,17 @@ export default function ChatInterface() {
     lastAIMessage.status === "loading" || lastAIMessage.status === "streaming";
 
   return (
-    <div className="flex flex-col h-[calc(100vh-4rem)] bg-dark-100">
+    <div className="flex bg-chat-background flex-col h-[calc(100vh-4rem)]">
       <div className="flex-1 overflow-y-auto p-2">
         <ChatMessageList smooth>
           {messages.filter((message) => message.role !== "system").length ===
             0 && (
-            <div className="w-full bg-background shadow-md rounded-lg flex flex-col overflow-hidden">
-              <h1 className="font-bold text-4xl md:text-5xl leading-tight">
+            <div className="w-full rounded-lg flex flex-col overflow-hidden">
+              <h1 className="font-bold text-2xl md:text-3xl leading-tight">
                 Resume Builder
               </h1>
               <div className="text-white text-base">
-                <p className="text-lg font-medium my-2">
+                <p className="font-medium my-2">
                   Build a sick resume in minutes!
                 </p>
                 <p className="mb-4">
@@ -307,19 +302,42 @@ export default function ChatInterface() {
           )}
           {messages
             .filter((message) => message.role !== "system")
-            .map((message) => (
+            .map((message, i) => (
               <ChatBubble
-                key={message.id}
+                key={i}
                 variant={message.role === "user" ? "sent" : "received"}
               >
                 <ChatBubbleMessage
                   variant={message.role === "user" ? "sent" : "received"}
                 >
                   <Markdown remarkPlugins={[remarkGfm]}>
-                    {message.content}
+                    {typeof message.content === "string" ? message.content : ""}
                   </Markdown>
-                  {message.tools &&
-                    message.tools.map((toolResult, index) => {
+                  {message.role === "assistant" &&
+                    (_.isArray(message.content) ? message.content : []).map(
+                      (toolCall, index) => {
+                        if ("toolName" in toolCall) {
+                          return (
+                            <div
+                              className="flex items-center gap-2"
+                              key={index}
+                            >
+                              <strong><span className="underline">{startCase(toolCall.toolName)}</span> Tool Request</strong>
+                              <img
+                                width={16}
+                                height={"auto"}
+                                src="https://emojicdn.elk.sh/🙋‍♀️"
+                              />
+                            </div>
+                          );
+                        }
+                        return (
+                            _.isString(message.content) ? message.content : ""
+                        );
+                      }
+                    )}
+                  {message.role === "tool" &&
+                    message.content.map((toolResult, index) => {
                       return (
                         <div className="flex items-center gap-2" key={index}>
                           <strong>{startCase(toolResult.toolName)}</strong>
@@ -378,7 +396,7 @@ export default function ChatInterface() {
           onValueChange={setInput}
           isLoading={isLoading}
           onSubmit={handleSendMessage}
-          className="w-full rounded-none"
+          className="w-full rounded-none bg-chat-input-background"
         >
           <PromptInputTextarea
             className="text-foreground"
