@@ -48,9 +48,9 @@ function ResumePreview() {
       <div
         ref={contentRef}
         className={cn(
-          "w-full [&>svg]:w-full bg-white",
+          "w-full [&>svg]:w-full bg-white border border-white",
           eyeSaverMode &&
-            "border-chat-border bg-chat-background [&>svg_use]:fill-white [&>svg_path]:stroke-white"
+            "bg-transparent [&>svg_use]:fill-white [&>svg_path]:stroke-white"
         )}
       />
       <div className="fixed top-0 right-0">

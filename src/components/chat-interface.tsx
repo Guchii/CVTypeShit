@@ -150,7 +150,7 @@ export default function ChatInterface() {
       messages,
       tools: tools,
       abortSignal: abortController.current.signal,
-      maxSteps: 1,
+      maxSteps: 2,
       onFinish: (e) => {
         console.log("Finished", e);
         setLastAIMessage({
@@ -270,7 +270,7 @@ export default function ChatInterface() {
     lastAIMessage.status === "loading" || lastAIMessage.status === "streaming";
 
   return (
-    <div className="flex bg-chat-background flex-col h-[calc(100vh-4rem)]">
+    <div className="flex bg-chat-background flex-col h-[calc(100vh-4rem)] border border-white">
       <div className="flex-1 overflow-y-auto p-2">
         <ChatMessageList smooth>
           {messages.filter((message) => message.role !== "system").length ===

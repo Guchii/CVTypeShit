@@ -211,4 +211,4 @@ export const modelsAtom = atomWithQuery((get) => {
   };
 });
 
-export const eyeSaverModeAtom = atomWithStorage("eye-saver-mode", true);
+export const eyeSaverModeAtom = atomWithStorage("eye-saver-mode", false);

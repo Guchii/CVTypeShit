@@ -2,9 +2,8 @@ import { tool, ToolSet } from "ai";
 import { parse, stringify } from "yaml";
 import { z, ZodSchema } from "zod";
 
-import { ResumeData, ResumeDataSchema } from "./types/resume-data";
+import { PersonalInfoSchema, ResumeData, ResumeDataSchema } from "./types/resume-data";
 import { BaseTypstDocument } from "./base-typst";
-import { toast } from "sonner";
 
 export class TypstDocument extends BaseTypstDocument {
   private _data: ResumeData;
@@ -74,14 +73,14 @@ export class TypstDocument extends BaseTypstDocument {
 
   getTools() {
     const tools: ToolSet = {
-      // "updatePersonalInfo": tool({
-      //   description: "Update the personal information",
-      //   parameters: PersonalInfoSchema.describe("Replaces the personal information in the resume"),
-      //   execute: async (args) => {
-      //     this._data.personal = args; 
-      //     this.updateFile("/template.yml", stringify(this._data));
-      //   },
-      // }),
+      "updatePersonalInfo": tool({
+        description: "Update the personal information",
+        parameters: PersonalInfoSchema.describe("Replaces the personal information in the resume"),
+        execute: async (args) => {
+          this._data.personal = args; 
+          this.updateFile("/template.yml", stringify(this._data));
+        },
+      }),
       "getPersonalInfo": tool({
         description: "Gets the existing personal information",
         parameters: z.object({}),
@@ -89,15 +88,6 @@ export class TypstDocument extends BaseTypstDocument {
           return this._data.personal;
         },
       }),
-      "successToast": tool({
-        description: "Shows a success toast",
-        parameters: z.object({
-          message: z.string(),
-        }),
-        execute: async (args) => {
-          toast.success(args.message);
-        },
-      })
   };
     return tools;
   }
