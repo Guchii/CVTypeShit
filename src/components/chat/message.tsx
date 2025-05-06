@@ -28,7 +28,7 @@ export function ChatMessage(props: Props) {
 
 function UserMessage(props: CoreUserMessage) {
   if (typeof props.content === "string") {
-    return <ChatBubbleMessage role="user">{props.content}</ChatBubbleMessage>;
+    return <ChatBubbleMessage variant={props.role === "user" ? "sent" : "received"} role="user">{props.content}</ChatBubbleMessage>;
   }
 }
 

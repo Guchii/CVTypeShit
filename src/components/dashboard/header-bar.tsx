@@ -25,7 +25,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-const resetMessagesAlertAtom = atom(false);
+export const resetMessagesAlertAtom = atom(false);
 
 export default function HeaderBar() {
     const setUserSheetOpen = useSetAtom(userSheetOpenAtom);

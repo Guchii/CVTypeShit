@@ -1,13 +1,13 @@
 "use client";
 
-import ChatInterface from "@/components/chat/interface";
+import ChatInterface, { resetMessagesAtom } from "@/components/chat/interface";
 import ResumePreview from "@/components/resume-preview";
 import UserProfileSheet from "@/components/sheets/user-profile";
 import LLMConfigSheet from "@/components/sheets/llm-config";
 import {
   TooltipProvider,
 } from "./ui/tooltip";
-import { useAtom } from "jotai";
+import { useAtom, useAtomValue } from "jotai";
 import {
   filesSheetOpenAtom,
   llmSheetOpenAtom,
@@ -15,7 +15,7 @@ import {
 } from "@/lib/atoms";
 import { Toaster } from "sonner";
 import FilesSheet from "./sheets/files";
-import HeaderBar, { ResetAlertDialog } from "./dashboard/header-bar";
+import HeaderBar, { ResetAlertDialog, resetMessagesAlertAtom } from "./dashboard/header-bar";
 import { cn } from "@/lib/utils";
 
 
@@ -23,8 +23,9 @@ export default function Layout() {
   const [userSheetOpen, setUserSheetOpen] = useAtom(userSheetOpenAtom);
   const [llmSheetOpen, setLlmSheetOpen] = useAtom(llmSheetOpenAtom);
   const [filesSheetOpen, setFilesSheetOpen] = useAtom(filesSheetOpenAtom);
+  const resetMessageAlertOpen = useAtomValue(resetMessagesAlertAtom);
 
-  const anySheetOpen = userSheetOpen || llmSheetOpen || filesSheetOpen;
+  const anySheetOpen = userSheetOpen || llmSheetOpen || filesSheetOpen || resetMessageAlertOpen;
 
   return (
     <TooltipProvider>

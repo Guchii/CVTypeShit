@@ -2,6 +2,8 @@ import * as React from "react";
 import { ArrowDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAutoScroll } from "@/components/ui/chat/hooks/useAutoScroll";
+import { useAutoAnimate } from '@formkit/auto-animate/react'
+import { getTransitionSizes } from "@formkit/auto-animate";
 
 interface ChatMessageListProps extends React.HTMLAttributes<HTMLDivElement> {
   smooth?: boolean;
@@ -19,6 +21,12 @@ const ChatMessageList = React.forwardRef<HTMLDivElement, ChatMessageListProps>(
       smooth,
       content: children,
     });
+
+    // const [parent, enableAnimations] = useAutoAnimate();
+
+    // React.useEffect(() => {
+    //   enableAnimations(true);
+    // },[enableAnimations])
 
     return (
       <div className="relative w-full h-full">
