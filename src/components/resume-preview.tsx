@@ -37,9 +37,7 @@ function ResumePreview() {
   }, [typstDocument, updateContent]);
 
   useEffect(() => {
-    typstDocument.fetchTemplateAndData().then(() => {
-      updateContent();
-    });
+    typstDocument.fetchTemplateAndData()
   }, [typstDocument, updateContent]);
   const [eyeSaverMode, setEyeSaverMode] = useAtom(eyeSaverModeAtom);
 
@@ -48,20 +46,17 @@ function ResumePreview() {
       <div
         ref={contentRef}
         className={cn(
-          "w-full [&>svg]:w-full bg-white border border-white",
+          "w-full [&>svg]:w-full bg-white border border-white h-full overflow-auto",
           eyeSaverMode &&
             "bg-transparent [&>svg_use]:fill-white [&>svg_path]:stroke-white"
         )}
-      />
+      >
+        <div className="prose prose-headings:text-foreground text-foreground p-32">
+          <h1>LOADING IG....</h1>
+          <p>Try refreshing if you're stuck at this state</p>
+        </div>
+      </div>
       <div className="fixed top-0 right-0">
-        {/* <Button
-          className="hover:scale-125 origin-top-right ease-[cubic-bezier(0.85,0,0.15,1)] duration-300"
-          variant="default"
-          size="sm"
-        >
-          <Rows4 className="h-4 w-4 mr-2" />
-          Configure Sections
-        </Button> */}
         <Button
           onClick={() => setEyeSaverMode((prev) => !prev)}
           variant="default"
