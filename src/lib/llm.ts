@@ -24,11 +24,6 @@ interface IHandlerOptions extends Partial<OpenAIProviderSettings> {
       temperature: number;
   }
 
-
-// export type TODO = any;
-
-// type Provider = TODO;
-
 export class AIHandler implements IAIHandler {
   _client: OpenAIProvider;
   options: IHandlerOptions;

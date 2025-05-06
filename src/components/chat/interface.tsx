@@ -112,6 +112,7 @@ export default function ChatInterface() {
   const [input, setInput] = useState("");
   const llmConfig = useAtomValue(activeLLMConfigAtom);
   const llmHandler = useAtomValue(llmHandlerAtom);
+
   const setLlmSheetOpen = useSetAtom(llmSheetOpenAtom);
   const triggerImportResume = useSetAtom(triggerImportResumeAtom);
 

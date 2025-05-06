@@ -86,49 +86,5 @@ function ToolMessage(props: CoreToolMessage) {
     </ChatBubbleMessage>
   );
 }
-//   <Markdown remarkPlugins={[remarkGfm]}>
-//                     {typeof message.content === "string" ? message.content : ""}
-//                   </Markdown>
-//                   {message.role === "assistant" &&
-//                     (_.isArray(message.content) ? message.content : []).map(
-//                       (toolCall, index) => {
-//                         if ("toolName" in toolCall) {
-//                           return (
-//                             <div
-//                               className="flex items-center gap-2"
-//                               key={index}
-//                             >
-//                               <strong>
-//                                 <span className="underline">
-//                                   {startCase(toolCall.toolName)}
-//                                 </span>{" "}
-//                                 Tool Request
-//                               </strong>
-//                               <img
-//                                 width={16}
-//                                 height={"auto"}
-//                                 src="https://emojicdn.elk.sh/🙋‍♀️"
-//                               />
-//                             </div>
-//                           );
-//                         }
-//                         return _.isString(message.content)
-//                           ? message.content
-//                           : "";
-//                       }
-//                     )}
-//                   {message.role === "tool" &&
-//                     message.content.map((toolResult, index) => {
-//                       return (
-//                         <div className="flex items-center gap-2" key={index}>
-//                           <strong>{startCase(toolResult.toolName)}</strong>
-//                           <img
-//                             width={16}
-//                             height={"auto"}
-//                             src="https://emojicdn.elk.sh/✅"
-//                           />
-//                         </div>
-//                       );
-//                     })}
 
 export default ChatMessage;
