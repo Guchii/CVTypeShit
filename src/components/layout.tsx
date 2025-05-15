@@ -1,6 +1,6 @@
 "use client";
 
-import ChatInterface, { resetMessagesAtom } from "@/components/chat/interface";
+import ChatInterface from "@/components/chat/interface";
 import ResumePreview from "@/components/resume-preview";
 import UserProfileSheet from "@/components/sheets/user-profile";
 import LLMConfigSheet from "@/components/sheets/llm-config";
