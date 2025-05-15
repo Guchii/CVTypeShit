@@ -16,7 +16,6 @@ import { useMemo, useRef } from "react";
 import { atom, useAtomValue, useSetAtom } from "jotai";
 import { documentAtom } from "@/lib/atoms";
 import { Button } from "../ui/button";
-import { TypstDocument } from "@/lib/typst";
 import _ from "lodash";
 import { toast } from "sonner";
 import { Control } from "react-hook-form";
@@ -73,7 +72,7 @@ export default function UserProfileSheet({
         side="left"
         className="max-w-[540px] border-zinc-800 sm:max-w-[640px] md:max-w-[720px]" // Increased width
       >
-        <SheetHeader className="p-4 bg-background">
+        <SheetHeader className="p-4">
           <SheetTitle className="text-4xl">Resume Data</SheetTitle>
           <SheetDescription className="text-sm text-muted-foreground">
             Fill in your details to create a personalized resume. You can chat
@@ -113,18 +112,24 @@ export default function UserProfileSheet({
               id: "user-profile-form",
             }}
             onFormInit={(form) => {
-                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                //@ts-ignore
-                form.reset(activeDocument.data);
-                formControl.current = form.control;
+              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+              //@ts-ignore
+              form.reset(activeDocument.data);
+              formControl.current = form.control;
             }}
             onSubmit={(data) => {
               try {
-                if (activeDocument instanceof TypstDocument) {
+                onOpenChange(false);
+                // TODO: This is a hack to wait for the document to be updated
+                // we should make the the doc compilation not block the thread
+                new Promise((resolve) => {
+                  setTimeout(() => {
+                    resolve(null);
+                  }, 500);
+                }).then(() => {
                   //@ts-expect-error
                   activeDocument.data = data;
-                  onOpenChange(false);
-                }
+                })
               } catch (error) {
                 console.error("Error updating document data:", error);
                 toast.error("Failed to update resume data.");
@@ -133,7 +138,7 @@ export default function UserProfileSheet({
             schema={schemaProvider}
           />
         </ScrollArea>
-        <SheetFooter className="flex justify-end p-6 bg-background">
+        <SheetFooter className="flex justify-end p-6">
           <Button type="submit" form="user-profile-form">
             Save
           </Button>

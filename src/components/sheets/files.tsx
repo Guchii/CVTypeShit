@@ -11,6 +11,7 @@ import { useCallback, useEffect, useState } from "react";
 
 import { Button } from "../ui/button";
 import { Eye, RefreshCcw } from "lucide-react";
+import { messagesAtom } from '@/hooks/use-chat';
 
 type LLMConfigSheetProps = {
   open: boolean;
@@ -24,6 +25,11 @@ export default function FilesSheet({
   const document = useAtomValue(documentAtom);
   const [files, setFiles] = useState<string[]>([]);
   const [activeFile, setActiveFile] = useState<string | null>(null);
+  const messages = useAtomValue(messagesAtom);
+
+  const displayMessages = useCallback(() => {
+    setActiveFile(JSON.stringify(messages.filter(m => m.role !== "system"), null, 2)); 
+  }, [messages]);
 
   const getFiles = useCallback(async () => {
     const files = await document.fs.promises.readdir("/");
@@ -39,7 +45,7 @@ export default function FilesSheet({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
         side="left"
-        className="w-[400px] gap-0 sm:w-[540px] bg-dark-100 border-zinc-800"
+        className="w-[400px] gap-0 sm:w-[540px] border-zinc-800"
       >
         <SheetHeader className="p-4">
           <SheetTitle className="text-4xl">
@@ -51,6 +57,13 @@ export default function FilesSheet({
               className="ml-2"
             >
               <RefreshCcw className="h-5 w-5" />
+            </Button>
+            <Button
+              variant="outline"
+              onClick={displayMessages}
+              className="ml-2"
+            >
+              Display Messages JSON
             </Button>
           </SheetTitle>
         </SheetHeader>

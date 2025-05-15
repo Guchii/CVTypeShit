@@ -1,8 +1,9 @@
 import React, { useCallback, useEffect, useRef } from "react";
 import { Button } from "./ui/button";
-import { Download } from "lucide-react";
-import { useAtomValue } from "jotai";
-import { documentAtom } from "@/lib/atoms";
+import { Download, Eye } from "lucide-react";
+import { useAtom, useAtomValue } from "jotai";
+import { documentAtom, eyeSaverModeAtom } from "@/lib/atoms";
+import { cn } from "@/lib/utils";
 
 function ResumePreview() {
   const typstDocument = useAtomValue(documentAtom);
@@ -36,23 +37,34 @@ function ResumePreview() {
   }, [typstDocument, updateContent]);
 
   useEffect(() => {
-    typstDocument.fetchTemplateAndData().then(() => {
-      updateContent();
-    });
+    typstDocument.fetchTemplateAndData()
   }, [typstDocument, updateContent]);
+  const [eyeSaverMode, setEyeSaverMode] = useAtom(eyeSaverModeAtom);
 
   return (
-    <div className="h-[90%] w-full bg-white overflow-auto my-4 rounded-lg shadow-xl max-w-3xl mx-auto border border-zinc-200">
-      <div ref={contentRef} className="w-full bg-white [&>svg]:w-full" />
+    <div className="h-[87%] w-full bg-transparent overflow-auto my-4 rounded-lg max-w-3xl mx-auto">
+      <div
+        ref={contentRef}
+        className={cn(
+          "w-full [&>svg]:w-full bg-white border border-white h-full overflow-auto",
+          eyeSaverMode &&
+            "bg-transparent [&>svg_use]:fill-white [&>svg_path]:stroke-white"
+        )}
+      >
+        <div className="prose prose-headings:text-foreground text-foreground p-32">
+          <h1>LOADING IG....</h1>
+          <p>Try refreshing if you're stuck at this state</p>
+        </div>
+      </div>
       <div className="fixed top-0 right-0">
-        {/* <Button
-          className="hover:scale-125 origin-top-right ease-[cubic-bezier(0.85,0,0.15,1)] duration-300"
+        <Button
+          onClick={() => setEyeSaverMode((prev) => !prev)}
           variant="default"
           size="sm"
         >
-          <Rows4 className="h-4 w-4 mr-2" />
-          Configure Sections
-        </Button> */}
+          <Eye className="h-4 w-4 mr-2" />
+          {eyeSaverMode ? "Disable Eye Saver" : "Enable Eye Saver"}
+        </Button>
         <Button
           onClick={handleExportPDF}
           className="hover:scale-125 origin-top-right ease-[cubic-bezier(0.85,0,0.15,1)] duration-300"

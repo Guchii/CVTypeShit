@@ -1,17 +1,13 @@
 "use client";
 
 import { BrainCog, DatabaseZap, Folders, LucideRefreshCcw } from "lucide-react";
-import ChatInterface, { resetMessagesAtom } from "@/components/chat-interface";
-import ResumePreview from "@/components/resume-preview";
-import UserProfileSheet from "@/components/sheets/user-profile";
-import LLMConfigSheet from "@/components/sheets/llm-config";
+import { resetMessagesAtom } from "@/hooks/use-chat";
 import { Button } from "@/components/ui/button";
 import {
   Tooltip,
   TooltipContent,
-  TooltipProvider,
   TooltipTrigger,
-} from "./ui/tooltip";
+} from "@/components/ui/tooltip";
 import { atom, useAtom, useSetAtom } from "jotai";
 import {
   filesSheetOpenAtom,
@@ -28,24 +24,16 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Toaster } from "sonner";
-import FilesSheet from "./sheets/files";
 
-const resetMessagesAlertAtom = atom(false);
+export const resetMessagesAlertAtom = atom(false);
 
-export default function Dashboard() {
-  const [userSheetOpen, setUserSheetOpen] = useAtom(userSheetOpenAtom);
-  const [llmSheetOpen, setLlmSheetOpen] = useAtom(llmSheetOpenAtom);
-  const [filesSheetOpen, setFilesSheetOpen] = useAtom(filesSheetOpenAtom);
-  const setResetMessagesAlert = useSetAtom(resetMessagesAlertAtom);
-
-  return (
-    <TooltipProvider>
-      <Toaster />
-      <div className="flex h-screen overflow-hidden bg-dark-200">
-        <div className="flex flex-col flex-1 overflow-hidden border-r border-zinc-800 bg-dark-100">
-          <div className="flex items-center justify-between p-4 border-b border-border">
-            <div className="flex items-center gap-2">
+export default function HeaderBar() {
+    const setUserSheetOpen = useSetAtom(userSheetOpenAtom);
+    const setLlmSheetOpen = useSetAtom(llmSheetOpenAtom);
+    const setFilesSheetOpen = useSetAtom(filesSheetOpenAtom);
+    const setResetMessagesAlert = useSetAtom(resetMessagesAlertAtom);
+    return (
+      <div className="flex items-center gap-2">
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
@@ -97,29 +85,9 @@ export default function Dashboard() {
                 <TooltipContent>Start Over</TooltipContent>
               </Tooltip>
             </div>
-          </div>
-          {/* Chat Interface */}
-          <ChatInterface />
-        </div>
-        {/* Right side - Resume Preview */}
-        <div className="w-[650px] bg-dark-300 relative p-6 grid place-items-center">
-          {/* <div className="loader-cool absolute top-1/2 left-1/2 -translate-x-[50%] -translate-y-[50%]"/> */}
-          <ResumePreview />
-        </div>
-        {/* Sheets */}
-        <UserProfileSheet
-          open={userSheetOpen}
-          onOpenChange={setUserSheetOpen}
-        />
-        <LLMConfigSheet open={llmSheetOpen} onOpenChange={setLlmSheetOpen} />
-        <FilesSheet open={filesSheetOpen} onOpenChange={setFilesSheetOpen} />
-      </div>
-      <ResetAlertDialog />
-    </TooltipProvider>
-  );
+    )
 }
-
-const ResetAlertDialog = () => {
+export const ResetAlertDialog = () => {
   const resetMessages = useSetAtom(resetMessagesAtom);
   const [resetMessagesAlert, setResetMessagesAlert] = useAtom(
     resetMessagesAlertAtom
