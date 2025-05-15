@@ -1,14 +1,14 @@
 "use client";
 
 import { BrainCog, DatabaseZap, Folders, LucideRefreshCcw } from "lucide-react";
-import { resetMessagesAtom } from "@/components/chat/interface";
+import { resetMessagesAtom } from "@/hooks/use-chat";
 import { Button } from "@/components/ui/button";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { atom, useAtom, useAtomValue, useSetAtom } from "jotai";
+import { atom, useAtom, useSetAtom } from "jotai";
 import {
   filesSheetOpenAtom,
   llmSheetOpenAtom,

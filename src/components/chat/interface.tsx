@@ -1,6 +1,4 @@
-import type React from "react";
-
-import { useState, useRef, useEffect, useCallback, useMemo } from "react";
+import { useMemo } from "react";
 import { ArrowUp, AtSign, RefreshCcw, Square } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -10,10 +8,8 @@ import {
   PromptInputTextarea,
 } from "@/components/ui/prompt-input";
 
-import { atom, useAtom, useAtomValue, useSetAtom } from "jotai";
+import { useAtomValue, useSetAtom } from "jotai";
 import {
-  userSheetOpenAtom,
-  llmHandlerAtom,
   activeLLMConfigAtom,
   documentAtom,
   llmSheetOpenAtom,
@@ -27,210 +23,37 @@ import {
   ChatBubbleAction,
   ChatBubbleMessage,
 } from "../ui/chat/chat-bubble";
-import { atomWithStorage, RESET } from "jotai/utils";
 
-import { CoreMessage } from "ai";
 import { PromptSuggestion } from "../ui/prompt-suggestion";
 import { triggerImportResumeAtom } from "../sheets/user-profile";
 import ChatMessage from "./message";
-
-export const messagesAtom = atomWithStorage<CoreMessage[]>("messages", [
-  {
-    role: "system",
-    content: `Role:
-You are "Resume Pundit", an AI assistant that helps users build professional resumes. A live preview updates automatically as changes are made.
-
-Key Responsibilities:
-
-Fetch & Display Current Data:
-
-Start by retrieving the user’s existing personal details (if any) using getPersonalData.
-
-Clearly summarize the current info before making edits.
-
-Structured Personal Data Collection:
-
-Guide the user step-by-step to provide:
-
-Full name
-
-Email & phone number
-
-LinkedIn/portfolio links (optional)
-
-Location (city/country)
-
-Never ask for JSON input—users interact naturally; you handle the structured updates.
-
-Job-Tailored Suggestions:
-
-Ask about the target job/industry to offer relevant advice (e.g., "For software roles, add GitHub over hobbies.").
-
-Communication Style:
-
-Friendly but professional – Avoid jargon.
-
-Clear, directive questions: "What’s your full name?" vs. "Can you share your name?"
-
-Explain why: "A professional email (e.g., name@domain.com) boosts credibility."
-
-Suggest optimizations: "Add a LinkedIn link? Recruiters often check profiles."
-
-Critical Rules:
-
-Never mention JSON/technical terms – Users interact naturally; you map responses to structured data.
-
-No confirmations for updates – Assume the live preview lets them self-verify.
-
-Prevent empty fields – If a user skips data, note it’s optional (e.g., "We can add your phone later.").
-
-First Interaction Flow:
-
-Greet briefly: "Hi! I’ll help you build your resume. Let’s start with your basics—what’s your full name?"
-
-Fetch existing data with getPersonalData. If none, proceed step-by-step.
-
-After collecting basics, ask: "Are you targeting a specific job? This helps tailor your resume."`,
-  },
-]);
-
-export const resetMessagesAtom = atom(
-  (get) => get(messagesAtom),
-  (_, set) => {
-    set(messagesAtom, RESET);
-  }
-);
+import Greeting from "../greeting";
+import useChat from "@/hooks/use-chat";
 
 export default function ChatInterface() {
-  const [messages, setMessages] = useAtom(messagesAtom);
   const typstDocument = useAtomValue(documentAtom);
 
   const tools = useMemo(() => {
     return typstDocument.getTools();
   }, [typstDocument]);
 
-  const [input, setInput] = useState("");
+  const {
+    messages,
+    lastAIMessage,
+    handleGeneration,
+    messageCount,
+    abortController,
+    input,
+    setInput,
+    handleSendMessage,
+  } = useChat({
+    tools,
+  });
+
   const llmConfig = useAtomValue(activeLLMConfigAtom);
-  const llmHandler = useAtomValue(llmHandlerAtom);
 
   const setLlmSheetOpen = useSetAtom(llmSheetOpenAtom);
   const triggerImportResume = useSetAtom(triggerImportResumeAtom);
-
-  const abortController = useRef<AbortController>(new AbortController());
-
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
-
-  const [lastAIMessage, setLastAIMessage] = useState<{
-    status: "loading" | "streaming" | "complete" | "error";
-    content: string;
-  }>({
-    status: "complete",
-    content: "",
-  });
-
-  const messageCount = messages.length;
-
-  const handleGeneration = useCallback(async () => {
-    if (abortController.current.signal.aborted) {
-      abortController.current = new AbortController();
-    }
-
-    setLastAIMessage((prev) => ({
-      ...prev,
-      status: "loading",
-    }));
-    const result = llmHandler.generateStream({
-      messages,
-      tools: tools,
-      abortSignal: abortController.current.signal,
-      maxSteps: 2,
-      onFinish: (e) => {
-        setLastAIMessage({
-          content: "",
-          status: "complete",
-        });
-        setMessages((prev) => [...prev, ...e.response.messages]);
-      },
-      onError: ({ error }) => {
-        const errorMessage = error instanceof Error ? error.message : undefined;
-        setLastAIMessage((prev) => ({
-          ...prev,
-          content: errorMessage || "Unknown error",
-          status: "error",
-        }));
-      },
-    });
-    for await (const part of result.fullStream) {
-      switch (part.type) {
-        case "text-delta": {
-          console.log("Text delta:", part.textDelta);
-          setLastAIMessage((prev) => ({
-            ...prev,
-            content: prev.content + part.textDelta,
-            status: "streaming",
-          }));
-          break;
-        }
-        case "reasoning": {
-          // handle reasoning here
-          setLastAIMessage((prev) => ({
-            ...prev,
-            content: prev.content + part.textDelta,
-            status: "streaming",
-          }));
-          break;
-        }
-        case "source": {
-          // handle source here
-          break;
-        }
-        case "tool-call": {
-          console.log("Tool call:", part.toolName, part.args);
-          break;
-        }
-        case "finish": {
-          // handle finish here
-          console.log("Finished", part.finishReason);
-          if (part.finishReason === "tool-calls") {
-            console.log("Tool calls:", part);
-          }
-          break;
-        }
-        case "error": {
-          // handle error here
-          break;
-        }
-      }
-    }
-  }, [messageCount, llmHandler, tools]);
-
-  useEffect(() => {
-    if (messageCount && messages[messageCount - 1].role === "user")
-      handleGeneration();
-  }, [messageCount, handleGeneration]);
-
-  const handleSendMessage = async (e?: React.FormEvent) => {
-    e?.preventDefault();
-
-    if (!input.trim()) return;
-
-    const userMessage: CoreMessage = {
-      content: input,
-      role: "user",
-    };
-
-    setMessages((prev) => [...prev, userMessage]);
-  };
-
-  const setUserSheetOpen = useSetAtom(userSheetOpenAtom);
 
   const isLoading =
     lastAIMessage.status === "loading" || lastAIMessage.status === "streaming";
@@ -239,33 +62,7 @@ export default function ChatInterface() {
     <div className="flex bg-chat-background flex-col h-[calc(100vh-4rem)] border border-white">
       <div className="flex-1 overflow-y-auto p-2">
         <ChatMessageList smooth>
-          {messages.filter((message) => message.role !== "system").length ===
-            0 && (
-            <div className="w-full rounded-lg flex flex-col overflow-hidden">
-              <h1 className="font-bold text-2xl md:text-3xl leading-tight">
-                Resume Builder
-              </h1>
-              <div className="text-white text-base">
-                <p className="font-medium my-2">
-                  Build a sick resume in minutes!
-                </p>
-                <p className="mb-4">
-                  1. We have just a single no BS ATS Friendly template
-                  <br />
-                  2. Tell the assistant about yourself or paste a JD or{" "}
-                  <span
-                    onClick={() => setUserSheetOpen(true)}
-                    className="underline cursor-pointer"
-                  >
-                    populate the resume data yourself
-                  </span>
-                  <br />
-                  3. Click on the export pdf button on the top right to download
-                  your resume
-                </p>
-              </div>
-            </div>
-          )}
+          {messages.length - 1 === 0 && <Greeting />}
           {messages.map((message, i) => (
             <ChatBubble
               key={i}
@@ -323,6 +120,7 @@ export default function ChatInterface() {
           <PromptInputTextarea
             className="text-foreground"
             placeholder="Tell about yourself or paste a JD or just ask a question"
+            disabled={isLoading}
           />
           <PromptInputActions className="justify-end pt-2">
             <PromptInputAction

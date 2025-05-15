@@ -11,7 +11,7 @@ import { useCallback, useEffect, useState } from "react";
 
 import { Button } from "../ui/button";
 import { Eye, RefreshCcw } from "lucide-react";
-import { messagesAtom } from "../chat/interface";
+import { messagesAtom } from '@/hooks/use-chat';
 
 type LLMConfigSheetProps = {
   open: boolean;
