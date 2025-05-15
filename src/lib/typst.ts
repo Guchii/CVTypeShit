@@ -2,18 +2,35 @@ import { tool, ToolSet } from "ai";
 import { parse, stringify } from "yaml";
 import { z, ZodSchema } from "zod";
 
-import { PersonalInfoSchema, ResumeData, ResumeDataSchema } from "./types/resume-data";
-import { BaseTypstDocument } from "./base-typst";
+import {
+  PersonalInfoSchema,
+  ResumeData,
+  ResumeDataSchema,
+} from "./types/resume-data";
+import {
+  BaseTypstDocument,
+  CompilerInitOptions,
+  indexedDBStore,
+} from "./base-typst";
 
 export class TypstDocument extends BaseTypstDocument {
   private _data: ResumeData;
-  constructor(template = "", yaml = "", private templateName = "template-1") {
-    super(template, [
-      {
-        content: yaml,
-        path: "/template.yml",
-      },
-    ]);
+  constructor(
+    template = "",
+    yaml = "",
+    private templateName = "template-1",
+    compilerInitOptions?: CompilerInitOptions
+  ) {
+    super(
+      template,
+      [
+        {
+          content: yaml,
+          path: "/template.yml",
+        },
+      ],
+      compilerInitOptions
+    );
     this._data = parse(yaml);
   }
 
@@ -73,22 +90,24 @@ export class TypstDocument extends BaseTypstDocument {
 
   getTools() {
     const tools: ToolSet = {
-      "updatePersonalInfo": tool({
+      updatePersonalInfo: tool({
         description: "Update the personal information",
-        parameters: PersonalInfoSchema.describe("Replaces the personal information in the resume"),
+        parameters: PersonalInfoSchema.describe(
+          "Replaces the personal information in the resume"
+        ),
         execute: async (args) => {
-          this._data.personal = args; 
+          this._data.personal = args;
           this.updateFile("/template.yml", stringify(this._data));
         },
       }),
-      "getPersonalInfo": tool({
+      getPersonalInfo: tool({
         description: "Gets the existing personal information",
         parameters: z.object({}),
         execute: async () => {
           return this._data.personal;
         },
       }),
-  };
+    };
     return tools;
   }
 
@@ -98,13 +117,13 @@ export class TypstDocument extends BaseTypstDocument {
 
   async resetDocument() {
     await new Promise((resolve, reject) => {
-      const requst = indexedDB.deleteDatabase("RESUME_MASTI");
+      const requst = indexedDB.deleteDatabase(indexedDBStore);
       requst.onsuccess = () => {
         resolve(true);
       };
       requst.onerror = () => {
         reject(new Error("Failed to reset the database"));
-      }
+      };
     });
   }
 }

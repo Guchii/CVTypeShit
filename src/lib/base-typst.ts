@@ -2,30 +2,39 @@ import { $typst } from "@myriaddreamin/typst.ts/dist/esm/contrib/snippet.mjs";
 import { ToolSet } from "ai";
 import { z, ZodSchema } from "zod";
 import FS from "@isomorphic-git/lightning-fs";
-
-$typst.setCompilerInitOptions({
-  getModule: () =>
-    new URL(
-      "@myriaddreamin/typst-ts-web-compiler/pkg/typst_ts_web_compiler_bg.wasm",
-      import.meta.url
-    ),
-});
-
-$typst.setRendererInitOptions({
-  getModule: () =>
-    new URL(
-      "@myriaddreamin/typst-ts-renderer/pkg/typst_ts_renderer_bg.wasm",
-      import.meta.url
-    ),
-});
-
+import { InitOptions } from "@myriaddreamin/typst.ts/dist/esm/options.init.mjs";
+import { logger } from "./consola";
 type TypstFile = {
   path: string;
   content: string;
 };
 
+export type CompilerInitOptions = {
+  compiler: Partial<InitOptions>;
+  renderer: Partial<InitOptions>;
+};
+
+const defaultCompilerOptions: CompilerInitOptions = {
+  compiler: {
+    getModule: () =>
+      new URL(
+        "@myriaddreamin/typst-ts-web-compiler/pkg/typst_ts_web_compiler_bg.wasm",
+        import.meta.url
+      ),
+  },
+  renderer: {
+    getModule: () =>
+      new URL(
+        "@myriaddreamin/typst-ts-renderer/pkg/typst_ts_renderer_bg.wasm",
+        import.meta.url
+      ),
+  },
+};
+
+export const indexedDBStore = "resume-bandhuu";
+
 export class BaseTypstDocument {
-  private typst: typeof $typst;
+  public typst: typeof $typst;
   private observers: ((content: string) => void)[] = [];
   private mainContent: string = "";
   public fs: FS;
@@ -35,11 +44,22 @@ export class BaseTypstDocument {
    * @param mainContent contents for the file /main.typ
    * @param files additional shadow files to be mapped in the typst compiler
    */
-  constructor(mainContent: string, files: TypstFile[]) {
+  constructor(
+    mainContent: string,
+    files: TypstFile[],
+    compilerInitOptions: CompilerInitOptions = defaultCompilerOptions
+  ) {
+    logger.start(BaseTypstDocument.name);
+
+    $typst.setCompilerInitOptions(compilerInitOptions.compiler);
+    $typst.setRendererInitOptions(compilerInitOptions.renderer);
+
     this.typst = $typst;
-    this.fs = new FS("RESUME_MASTI");
+
+    this.fs = new FS(indexedDBStore);
 
     this.fs.readFile("/main.typ", { encoding: "utf8" }, (e, data) => {
+      logger.ready("/main.typ");
       if (e) {
         this.mainContent = mainContent;
         this.fs.writeFile(
@@ -57,14 +77,15 @@ export class BaseTypstDocument {
     // Map other files
     files.forEach((file) => {
       this.fs.readFile(file.path, { encoding: "utf8" }, (e, data) => {
+        logger.ready(file.path);
         if (e) {
-          console.log(`Error reading file ${file.path}: ${e}`);
+          logger.log(`Error reading file ${file.path}: ${e}`);
           this.fs.writeFile(
             file.path,
             file.content,
             { encoding: "utf8", mode: 0o777 },
-            () => {
-              this.typst.mapShadow(
+            async () => {
+              await this.typst.mapShadow(
                 file.path,
                 new TextEncoder().encode(file.content)
               );
@@ -76,8 +97,10 @@ export class BaseTypstDocument {
             file.path,
             data,
             { encoding: "utf8", mode: 0o777 },
-            () => {
-              this.typst.mapShadow(file.path, new TextEncoder().encode(data));
+            async () => {
+              logger.debug(`${file.path} written to storage`);
+              logger.start(`shadow mapping ${file.path}`);
+              await this.typst.mapShadow(file.path, new TextEncoder().encode(data));
             }
           );
         }
@@ -101,6 +124,7 @@ export class BaseTypstDocument {
   }
 
   async compileToSVG(): Promise<string> {
+    logger.start(this.compileToSVG.name);
     return await this.typst.svg({ mainContent: this.mainContent });
   }
 
@@ -118,8 +142,8 @@ export class BaseTypstDocument {
       encoding: "utf8",
       mode: 0o777,
     });
-    this.typst.unmapShadow(path);
-    this.typst.mapShadow(path, new TextEncoder().encode(newContent));
+    await this.typst.unmapShadow(path);
+    await this.typst.mapShadow(path, new TextEncoder().encode(newContent));
   }
 
   async updateFile(path: string, newContent: string) {
@@ -128,10 +152,16 @@ export class BaseTypstDocument {
     });
     await this.updateFileContent(path, newContent);
     try {
+      logger.start("Build Check");
       await this.compileToSVG();
-      this.observers.forEach((observer) => observer(this.mainContent));
+      try {
+        this.observers.forEach((observer) => observer(this.mainContent));
+      } catch {
+        logger.warn("Some observer is throwing", this.updateFile.name);
+      }
     } catch (e) {
       await this.updateFileContent(path, oldContent as string);
+      logger.error("Build check threw");
       throw new Error(
         `Error updating file ${path}: ${e}. The file has been reverted to its previous state.`
       );

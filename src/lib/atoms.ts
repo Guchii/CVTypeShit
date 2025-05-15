@@ -207,7 +207,7 @@ export const llmHandlerAtom = atom((get) => {
 });
 
 // Active Document State
-export const documentAtom = atom<TypstDocument>(new TypstDocument());
+export const documentAtom = atom(new TypstDocument());
 
 // Sheets State
 export const userSheetOpenAtom = atom(false);
