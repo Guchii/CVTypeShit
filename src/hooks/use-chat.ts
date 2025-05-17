@@ -57,7 +57,7 @@ export default function useChat({ tools }: { tools: ToolSet } = { tools: {} }) {
       experimental_continueSteps: true,
       maxSteps: 10,
       onFinish: (e) => {
-        logger.debug("Finish stream", e.response.messages)
+        logger.debug("Finish stream", e.response.messages);
         setLastAIMessage({
           content: "",
           status: "complete",
@@ -102,7 +102,9 @@ export default function useChat({ tools }: { tools: ToolSet } = { tools: {} }) {
           console.log("Tool call:", part.toolName, part.args);
           setLastAIMessage((prev) => ({
             ...prev,
-            content: `${prev.content}\nTool Call: ${part.toolName} ${JSON.stringify(part.args)}`,
+            content: `${prev.content}\nRunning: ${
+              part.toolName
+            } ${JSON.stringify(part.args)}\n`,
             status: "streaming",
           }));
           break;
@@ -121,7 +123,7 @@ export default function useChat({ tools }: { tools: ToolSet } = { tools: {} }) {
         }
       }
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [messageCount, llmHandler, tools]);
 
   useEffect(() => {
