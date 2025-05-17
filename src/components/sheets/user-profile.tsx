@@ -139,7 +139,7 @@ export default function UserProfileSheet({
           />
         </ScrollArea>
         <SheetFooter className="flex justify-end p-6">
-          <Button type="submit" form="user-profile-form">
+          <Button variant={"outline"} type="submit" form="user-profile-form">
             Save
           </Button>
         </SheetFooter>

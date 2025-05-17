@@ -73,7 +73,6 @@ function AssistantMessage(props: CoreAssistantMessage) {
 function ToolMessage(props: CoreToolMessage) {
   return (
     <ChatBubbleMessage role="tool">
-      <div className="text-gray-500 text-sm">Tool Results</div>
       {_.isArray(props.content) &&
         props.content.map((part, i) => {
           return (

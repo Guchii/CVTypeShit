@@ -28,64 +28,64 @@ import {
 export const resetMessagesAlertAtom = atom(false);
 
 export default function HeaderBar() {
-    const setUserSheetOpen = useSetAtom(userSheetOpenAtom);
-    const setLlmSheetOpen = useSetAtom(llmSheetOpenAtom);
-    const setFilesSheetOpen = useSetAtom(filesSheetOpenAtom);
-    const setResetMessagesAlert = useSetAtom(resetMessagesAlertAtom);
-    return (
-      <div className="flex items-center gap-2">
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={() => setUserSheetOpen(true)}
-                  >
-                    <DatabaseZap className="h-5 w-5" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Data</TooltipContent>
-              </Tooltip>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={() => setLlmSheetOpen(true)}
-                  >
-                    <BrainCog className="h-5 w-5" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>LLM Settings</TooltipContent>
-              </Tooltip>
-              {import.meta.env.DEV && (
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() => setFilesSheetOpen(true)}
-                    >
-                      <Folders className="h-5 w-5" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>Files</TooltipContent>
-                </Tooltip>
-              )}
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    onClick={() => setResetMessagesAlert(true)}
-                    variant="outline"
-                    size="icon"
-                  >
-                    <LucideRefreshCcw className="h-5 w-5" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Start Over</TooltipContent>
-              </Tooltip>
-            </div>
-    )
+  const setUserSheetOpen = useSetAtom(userSheetOpenAtom);
+  const setLlmSheetOpen = useSetAtom(llmSheetOpenAtom);
+  const setFilesSheetOpen = useSetAtom(filesSheetOpenAtom);
+  const setResetMessagesAlert = useSetAtom(resetMessagesAlertAtom);
+  return (
+    <div className="flex items-center gap-2">
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => setUserSheetOpen(true)}
+          >
+            <DatabaseZap className="h-5 w-5" />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>Data</TooltipContent>
+      </Tooltip>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => setLlmSheetOpen(true)}
+          >
+            <BrainCog className="h-5 w-5" />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>LLM Settings</TooltipContent>
+      </Tooltip>
+      {import.meta.env.DEV && (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => setFilesSheetOpen(true)}
+            >
+              <Folders className="h-5 w-5" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>Files</TooltipContent>
+        </Tooltip>
+      )}
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            onClick={() => setResetMessagesAlert(true)}
+            variant="outline"
+            size="icon"
+          >
+            <LucideRefreshCcw className="h-5 w-5" />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>Start Over</TooltipContent>
+      </Tooltip>
+    </div>
+  );
 }
 export const ResetAlertDialog = () => {
   const resetMessages = useSetAtom(resetMessagesAtom);

@@ -70,9 +70,9 @@
 }
 
 :root {
-  --radius: 0rem;
+  --radius: 0.5rem;
   --foreground: hsl(270 20% 97.8%);
-  --background: hsl(313.8 24.5% 10.4%);
+  --background: hsl(240 2.6% 7.6%);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.147 0.004 49.25);
   --popover: oklch(1 0 0);

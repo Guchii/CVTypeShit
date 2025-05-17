@@ -59,7 +59,7 @@ export default function ChatInterface() {
     lastAIMessage.status === "loading" || lastAIMessage.status === "streaming";
 
   return (
-    <div className="flex bg-chat-background flex-col h-[calc(100vh-4rem)] border border-white">
+    <div className="flex flex-col h-[calc(100vh)]">
       <div className="flex-1 overflow-y-auto p-2">
         <ChatMessageList smooth>
           {messages.length - 1 === 0 && <Greeting />}
@@ -105,7 +105,7 @@ export default function ChatInterface() {
             onClick={() => {
               triggerImportResume();
             }}
-            className="rounded-none hover:border-ring hover:bg-accent/50 hover:text-white"
+            className="hover:border-ring rounded-md"
           >
             Import Resume
           </PromptSuggestion>
@@ -115,7 +115,7 @@ export default function ChatInterface() {
           onValueChange={setInput}
           isLoading={isLoading}
           onSubmit={handleSendMessage}
-          className="w-full rounded-none bg-chat-input-background"
+          className="w-full rounded-md"
         >
           <PromptInputTextarea
             className="text-foreground"
@@ -129,7 +129,7 @@ export default function ChatInterface() {
               <Button
                 variant="default"
                 size="icon"
-                className="h-8 w-8 rounded-none"
+                className="h-8 w-8"
                 onClick={() => setLlmSheetOpen(true)}
               >
                 <AtSign className="size-5" />
@@ -141,7 +141,7 @@ export default function ChatInterface() {
               <Button
                 variant="default"
                 size="icon"
-                className="h-8 w-8 rounded-none bg-accent text-accent-foreground hover:bg-accent/80"
+                className="h-8 w-8 bg-white text-accent-foreground hover:bg-accent/80"
                 onClick={
                   isLoading
                     ? () => abortController.current.abort()

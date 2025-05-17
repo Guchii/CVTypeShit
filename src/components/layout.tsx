@@ -39,7 +39,7 @@ export default function Layout() {
         )}
       >
         <div className="flex flex-col flex-1 overflow-hidden">
-          <div className="flex items-center justify-between p-4">
+          <div className="flex absolute left-0 top-0 items-center justify-between bg-sidebar px-6 py-4 z-30">
             <HeaderBar />
           </div>
           <ChatInterface />

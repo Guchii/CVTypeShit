@@ -45,11 +45,11 @@ function ResumePreview() {
   const [eyeSaverMode, setEyeSaverMode] = useAtom(eyeSaverModeAtom);
 
   return (
-    <div className="h-[87%] w-full bg-transparent overflow-auto my-4 rounded-lg max-w-3xl mx-auto">
+    <div className="h-[87%] w-full bg-transparent overflow-auto my-4 max-w-3xl mx-auto">
       <div
         ref={contentRef}
         className={cn(
-          "w-full [&>svg]:w-full bg-white border border-white h-full overflow-auto",
+          "w-full [&>svg]:w-full bg-white border border-white h-full overflow-auto rounded-lg",
           eyeSaverMode &&
             "bg-transparent [&>svg_use]:fill-white [&>svg_path]:stroke-white"
         )}

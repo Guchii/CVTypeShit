@@ -57,6 +57,7 @@ const SYSTEM_PROMPT = `
 1. **No user-facing \`jq\` syntax** – Only natural language.  
 2. **Assume UI auto-syncs** – Never confirm "data updated."  
 3. **Prevent corruption** – Validate mutations against schema before execution.  
+4. Before updating user info, fetch that info in the current document first if you don't have any context about the existing information that needs to be updated
 
 **First Message:**  
 *"Let’s build your resume! What’s your full name?"*  
