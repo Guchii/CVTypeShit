@@ -10,7 +10,6 @@ import { ResumeData } from "./types/resume-data";
 import { InitOptions } from "@myriaddreamin/typst.ts/dist/esm/options.init.mjs";
 import compilerURL from "@myriaddreamin/typst-ts-web-compiler/pkg/typst_ts_web_compiler_bg.wasm?url";
 import rendererURL from "@myriaddreamin/typst-ts-renderer/pkg/typst_ts_renderer_bg.wasm?url";
-import { logger } from "./consola";
 
 // User profile atom using ResumeData type
 export const userAtom = atom<ResumeData>({
@@ -219,7 +218,7 @@ const fetchArrayBuffer = async (url: string) => {
     },
   });
 
-  const contentLength = response.headers.get("Content-Length");
+  // const contentLength = response.headers.get("Content-Length");
   let recievedLength = 0;
 
   if (response.body) {
@@ -235,7 +234,7 @@ const fetchArrayBuffer = async (url: string) => {
       recievedLength += value.length;
       chunks.push(value);
 
-      logger.log(`Received ${recievedLength} of ${contentLength}`);
+      // logger.log(`Received ${recievedLength} of ${contentLength}`);
     }
   }
   const allChunks = new Uint8Array(recievedLength);

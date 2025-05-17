@@ -2,16 +2,14 @@ import { tool, ToolSet } from "ai";
 import { parse, stringify } from "yaml";
 import { z, ZodSchema } from "zod";
 
-import {
-  PersonalInfoSchema,
-  ResumeData,
-  ResumeDataSchema,
-} from "./types/resume-data";
+import { ResumeData, ResumeDataSchema } from "./types/resume-data";
 import {
   BaseTypstDocument,
   CompilerInitOptions,
   indexedDBStore,
 } from "./base-typst";
+import { loadJQ } from "./jq";
+import { logger } from "./consola";
 
 export class TypstDocument extends BaseTypstDocument {
   private _data: ResumeData;
@@ -90,21 +88,54 @@ export class TypstDocument extends BaseTypstDocument {
 
   getTools() {
     const tools: ToolSet = {
-      updatePersonalInfo: tool({
-        description: "Update the personal information",
-        parameters: PersonalInfoSchema.describe(
-          "Replaces the personal information in the resume"
-        ),
-        execute: async (args) => {
-          this._data.personal = args;
-          this.updateFile("/template.yml", stringify(this._data));
+      mutate: tool({
+        parameters: z.object({
+          jqQuery: z
+            .string()
+            .describe(
+              "jq update query to be run, result should return the whole updated json"
+            ),
+        }),
+        description:
+          "Update the Resume JSON with the help of a jq query string,\
+          query will be run against the json and your query should return the whole updated json",
+        execute: async ({ jqQuery }) => {
+          const jq = await loadJQ();
+          logger.start("Started Updating JSON with query", jqQuery);
+          try {
+            const newJSON = await jq.invoke(
+              JSON.stringify(this._data, null, 2),
+              jqQuery
+            );
+            this.data = JSON.parse(newJSON);
+            return "Success";
+          } catch (e) {
+            logger.error("JQ errored out", e);
+            return "Failed";
+          }
         },
       }),
-      getPersonalInfo: tool({
-        description: "Gets the existing personal information",
-        parameters: z.object({}),
-        execute: async () => {
-          return this._data.personal;
+      query: tool({
+        parameters: z.object({
+          jqQuery: z.string().describe("jq query to be run"),
+        }),
+        description:
+          "Query the Resume JSON with the help of a jq query string,\
+          query will be run against the json and result will be returned to you",
+        execute: async ({ jqQuery }) => {
+          const jq = await loadJQ();
+          try {
+            logger.start("Started Querying JSON with query", jqQuery);
+            const result = await jq.invoke(
+              JSON.stringify(this._data, null, 2),
+              jqQuery
+            );
+            logger.debug("result:", result);
+            return result;
+          } catch (e) {
+            logger.error("JQ Errored Out", e);
+            return "Failed";
+          }
         },
       }),
     };
