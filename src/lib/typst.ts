@@ -127,18 +127,12 @@ export class TypstDocument extends BaseTypstDocument {
           const jq = await loadJQ();
           logger.start("Started Updating JSON with query", jqQuery);
           try {
-            const newJSONString = await jq.invoke(
+            const jsonString = await jq.invoke(
               JSON.stringify(this._data, null, 2),
               jqQuery
             );
-            const json = await ResumeDataSchema.safeParseAsync(JSON.parse(newJSONString));
 
-            if (!json.success)
-            {
-              return "Failed, Bad Query, Try Again";
-            }
-
-            await this.setdata(json.data)
+            await this.setdata(JSON.parse(jsonString))
             toast.success("Resume Updated")
             return "Success";
           } catch (e) {
