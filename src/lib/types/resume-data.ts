@@ -13,11 +13,11 @@ const ProfileSchema = z.object({
 }).describe("Profile");
 export const PersonalInfoSchema = z.object({
   name: z.string(),
-  email: z.string().describe("Email address"),
-  phone: z.string(),
-  url: z.string(),
-  titles: z.array(z.string()),
-  location: LocationSchema,
+  email: z.string().describe("Email address").optional(),
+  phone: z.string().optional(),
+  url: z.string().url().optional(),
+  titles: z.array(z.string()).optional(),
+  location: LocationSchema.partial().optional(),
   profiles: z.array(ProfileSchema).optional(),
 });
 
@@ -31,7 +31,7 @@ const PositionSchema = z.object({
 const WorkExperienceSchema = z
   .object({
     organization: z.string(),
-    url: z.string(),
+    url: z.string().url(),
     location: z.string(),
     positions: z.array(PositionSchema),
   })
@@ -111,16 +111,16 @@ const ReferenceSchema = z.object({
 
 export const ResumeDataSchema = z.object({
   personal: PersonalInfoSchema,
-  work: z.array(WorkExperienceSchema),
-  education: z.array(EducationSchema),
-  affiliations: z.array(AffiliationSchema),
-  awards: z.array(AwardSchema),
-  certificates: z.array(CertificateSchema),
-  publications: z.array(PublicationSchema),
-  projects: z.array(ProjectSchema),
-  skills: z.array(SkillCategorySchema),
-  languages: z.array(LanguageSchema),
-  interests: z.array(z.string()),
+  work: z.array(WorkExperienceSchema).optional(),
+  education: z.array(EducationSchema).optional(),
+  affiliations: z.array(AffiliationSchema).optional(),
+  awards: z.array(AwardSchema).optional(),
+  certificates: z.array(CertificateSchema).optional(),
+  publications: z.array(PublicationSchema).optional(),
+  projects: z.array(ProjectSchema).optional(),
+  skills: z.array(SkillCategorySchema).optional(),
+  languages: z.array(LanguageSchema).optional(),
+  interests: z.array(z.string()).optional(),
   references: z.array(ReferenceSchema).optional(),
 });
 

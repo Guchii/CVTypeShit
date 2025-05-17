@@ -7,13 +7,13 @@ import { llmHandlerAtom } from "@/lib/atoms";
 
 import { atomWithStorage, RESET } from "jotai/utils";
 
-import { CoreMessage, ToolSet } from "ai";
+import { CoreMessage, ToolCallPart, ToolResultPart, ToolSet } from "ai";
 import SYSTEM_PROMPT from "@/lib/prompts/system-prompt";
 
 export const messagesAtom = atomWithStorage<CoreMessage[]>("messages", [
   {
     role: "system",
-    content: SYSTEM_PROMPT,
+    content: SYSTEM_PROMPT(),
   },
 ]);
 
@@ -32,9 +32,11 @@ export default function useChat({ tools }: { tools: ToolSet } = { tools: {} }) {
   const [lastAIMessage, setLastAIMessage] = useState<{
     status: "loading" | "streaming" | "complete" | "error";
     content: string;
+    tool_calls: (ToolCallPart & { completed ?: true})[];
   }>({
     status: "complete",
     content: "",
+    tool_calls: [],
   });
   const llmHandler = useAtomValue(llmHandlerAtom);
   const messageCount = messages.length;
@@ -55,10 +57,26 @@ export default function useChat({ tools }: { tools: ToolSet } = { tools: {} }) {
       abortSignal: abortController.current.signal,
       experimental_continueSteps: true,
       maxSteps: 10,
+      onStepFinish: ({ toolResults }) => {
+        setLastAIMessage((prev) => ({
+          ...prev,
+          tool_calls: prev.tool_calls.map((toolCall) => {
+            const completed = 
+              toolResults.some((toolResult) => {
+                return (toolResult as ToolResultPart).toolCallId === toolCall.toolCallId;
+              });
+            if (completed) {
+              toolCall.completed = true;
+            }
+            return toolCall;
+          }),
+        }));
+      },
       onFinish: (e) => {
         setLastAIMessage({
           content: "",
           status: "complete",
+          tool_calls: [],
         });
         setMessages((prev) => [...prev, ...e.response.messages]);
         setInput("");
@@ -91,23 +109,15 @@ export default function useChat({ tools }: { tools: ToolSet } = { tools: {} }) {
           }));
           break;
         }
-        case "source": {
-          // handle source here
-          break;
-        }
         case "tool-call": {
           setLastAIMessage((prev) => ({
             ...prev,
-            content: `${prev.content}\nRunning: ${
-              part.toolName
-            } ${JSON.stringify(part.args)}\n`,
             status: "streaming",
+            tool_calls: [...prev.tool_calls, part],
           }));
           break;
         }
         case "finish": {
-          // handle finish here
-          console.log("Finished", part.finishReason);
           if (part.finishReason === "tool-calls") {
             console.log("Tool calls:", part);
           }

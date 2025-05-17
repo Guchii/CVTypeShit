@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { Fragment, useMemo } from "react";
 import { ArrowUp, AtSign, RefreshCcw, Square } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -29,6 +29,8 @@ import { triggerImportResumeAtom } from "../sheets/user-profile";
 import ChatMessage from "./message";
 import Greeting from "../greeting";
 import useChat from "@/hooks/use-chat";
+import ToolCall from "./tool-call";
+import _ from "lodash";
 
 export default function ChatInterface() {
   const typstDocument = useAtomValue(documentAtom);
@@ -72,30 +74,49 @@ export default function ChatInterface() {
             </ChatBubble>
           ))}
           {lastAIMessage.status !== "complete" && (
-            <ChatBubble variant="received">
-              <ChatBubbleMessage variant="received">
-                {lastAIMessage.status === "streaming" && (
-                  <Markdown remarkPlugins={[remarkGfm]}>
-                    {lastAIMessage.content}
-                  </Markdown>
-                )}
-                {lastAIMessage.status === "loading" && (
-                  <img
-                    src="/loading.gif"
-                    width={80}
-                    height={80}
-                    alt="epic-loader"
-                  />
-                )}
-                {lastAIMessage.status === "error" && lastAIMessage.content}
-              </ChatBubbleMessage>
-              {lastAIMessage.status === "error" && (
-                <ChatBubbleAction
-                  onClick={() => handleGeneration()}
-                  icon={<RefreshCcw className="size-3.5" />}
-                />
+            <Fragment>
+              {lastAIMessage.content && (
+                <ChatBubble variant="received">
+                  <ChatBubbleMessage variant="received">
+                    {lastAIMessage.status === "streaming" && (
+                      <Markdown remarkPlugins={[remarkGfm]}>
+                        {lastAIMessage.content}
+                      </Markdown>
+                    )}
+                    {lastAIMessage.status === "loading" && (
+                      <img
+                        src="/loading.gif"
+                        width={80}
+                        height={80}
+                        alt="epic-loader"
+                      />
+                    )}
+                    {lastAIMessage.status === "error" && lastAIMessage.content}
+                  </ChatBubbleMessage>
+                  {lastAIMessage.status === "error" && (
+                    <ChatBubbleAction
+                      onClick={() => handleGeneration()}
+                      icon={<RefreshCcw className="size-3.5" />}
+                    />
+                  )}
+                </ChatBubble>
               )}
-            </ChatBubble>
+              {lastAIMessage.tool_calls.map((call, i) => {
+                if (
+                  _.isObject(call.args) &&
+                  "jqQuery" in call.args &&
+                  typeof call.args.jqQuery === "string"
+                )
+                  return (
+                    <ToolCall
+                      key={i}
+                      toolName={call.toolName as "query" | "mutate"}
+                      query={call.args.jqQuery}
+                    />
+                  );
+                return null;
+              })}
+            </Fragment>
           )}
         </ChatMessageList>
       </div>
