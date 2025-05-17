@@ -22,6 +22,7 @@ import { Control } from "react-hook-form";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
 import { Dice3, Import } from "lucide-react";
 import { ImportResume } from "@/lib/import-resume";
+import { logger } from "@/lib/consola";
 
 type UserProfileSheetProps = {
   open: boolean;
@@ -129,10 +130,14 @@ export default function UserProfileSheet({
                 }).then(() => {
                   //@ts-expect-error
                   activeDocument.data = data;
-                })
+                });
               } catch (error) {
-                console.error("Error updating document data:", error);
-                toast.error("Failed to update resume data.");
+                toast.error("Failed to update resume data", {
+                  description: _.isError(error)
+                    ? error.message
+                    : "Unknown error",
+                });
+                logger.error(error);
               }
             }}
             schema={schemaProvider}

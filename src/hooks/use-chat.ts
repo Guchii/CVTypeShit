@@ -9,7 +9,6 @@ import { atomWithStorage, RESET } from "jotai/utils";
 
 import { CoreMessage, ToolSet } from "ai";
 import SYSTEM_PROMPT from "@/lib/prompts/system-prompt";
-import { logger } from "@/lib/consola";
 
 export const messagesAtom = atomWithStorage<CoreMessage[]>("messages", [
   {
@@ -57,7 +56,6 @@ export default function useChat({ tools }: { tools: ToolSet } = { tools: {} }) {
       experimental_continueSteps: true,
       maxSteps: 10,
       onFinish: (e) => {
-        logger.debug("Finish stream", e.response.messages);
         setLastAIMessage({
           content: "",
           status: "complete",
@@ -77,7 +75,6 @@ export default function useChat({ tools }: { tools: ToolSet } = { tools: {} }) {
     for await (const part of result.fullStream) {
       switch (part.type) {
         case "text-delta": {
-          console.log("Text delta:", part.textDelta);
           setLastAIMessage((prev) => ({
             ...prev,
             content: prev.content + part.textDelta,
@@ -99,7 +96,6 @@ export default function useChat({ tools }: { tools: ToolSet } = { tools: {} }) {
           break;
         }
         case "tool-call": {
-          console.log("Tool call:", part.toolName, part.args);
           setLastAIMessage((prev) => ({
             ...prev,
             content: `${prev.content}\nRunning: ${

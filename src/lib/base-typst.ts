@@ -4,6 +4,7 @@ import { z, ZodSchema } from "zod";
 import FS from "@isomorphic-git/lightning-fs";
 import { InitOptions } from "@myriaddreamin/typst.ts/dist/esm/options.init.mjs";
 import { logger } from "./consola";
+import { BuildFailedError } from "./errors";
 type TypstFile = {
   path: string;
   content: string;
@@ -154,17 +155,10 @@ export class BaseTypstDocument {
     try {
       logger.start("Build Check");
       await this.compileToSVG();
-      try {
-        this.observers.forEach((observer) => observer(this.mainContent));
-      } catch {
-        logger.warn("Some observer is throwing", this.updateFile.name);
-      }
+      this.observers.forEach((observer) => observer(this.mainContent));
     } catch (e) {
       await this.updateFileContent(path, oldContent as string);
-      logger.error("Build check threw");
-      throw new Error(
-        `Error updating file ${path}: ${e}. The file has been reverted to its previous state.`
-      );
+      throw new BuildFailedError(path, e)
     }
   }
 

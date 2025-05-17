@@ -10,6 +10,9 @@ import {
 } from "./base-typst";
 import { loadJQ } from "./jq";
 import { logger } from "./consola";
+import _ from "lodash";
+import { BuildFailedError } from "./errors";
+import { toast } from "sonner";
 
 export class TypstDocument extends BaseTypstDocument {
   private _data: ResumeData;
@@ -77,8 +80,29 @@ export class TypstDocument extends BaseTypstDocument {
   }
 
   set data(data: ResumeData) {
+    const oldData = _.cloneDeep(this._data);
     this._data = data;
-    this.updateFile("/template.yml", stringify(this._data));
+    try {
+      this.updateFile("/template.yml", stringify(this._data));
+    } catch (e) {
+      if (BuildFailedError.isBuildFailedError(e)) {
+        this._data = oldData;
+      }
+      throw e;
+    }
+  }
+
+   async setdata(data: ResumeData) {
+    const oldData = _.cloneDeep(this._data);
+    this._data = data;
+    try {
+      await this.updateFile("/template.yml", stringify(this._data));
+    } catch (e) {
+      if (BuildFailedError.isBuildFailedError(e)) {
+        this._data = oldData;
+      }
+      throw e;
+    }
   }
 
   replaceData(yaml: string) {
@@ -103,14 +127,22 @@ export class TypstDocument extends BaseTypstDocument {
           const jq = await loadJQ();
           logger.start("Started Updating JSON with query", jqQuery);
           try {
-            const newJSON = await jq.invoke(
+            const newJSONString = await jq.invoke(
               JSON.stringify(this._data, null, 2),
               jqQuery
             );
-            this.data = JSON.parse(newJSON);
+            const json = await ResumeDataSchema.safeParseAsync(JSON.parse(newJSONString));
+
+            if (!json.success)
+            {
+              return "Failed, Bad Query, Try Again";
+            }
+
+            await this.setdata(json.data)
+            toast.success("Resume Updated")
             return "Success";
           } catch (e) {
-            logger.error("JQ errored out", e);
+            this.handleError(e);
             return "Failed";
           }
         },
@@ -133,13 +165,22 @@ export class TypstDocument extends BaseTypstDocument {
             logger.debug("result:", result);
             return result;
           } catch (e) {
-            logger.error("JQ Errored Out", e);
+            this.handleError(e);
             return "Failed";
           }
         },
       }),
     };
     return tools;
+  }
+
+  private handleError(e: unknown, displayToast = true){
+    if (BuildFailedError.isBuildFailedError(e)) {
+      logger.error(e);
+      if (displayToast) toast.error(e.message)
+      return;
+    }
+    logger.error(new Error("JQ Errored Out"), e);
   }
 
   getDataSchema(): ZodSchema {
