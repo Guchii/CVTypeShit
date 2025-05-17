@@ -7,6 +7,9 @@ import { atomWithStorage } from "jotai/utils";
 import { OpenAIHandler, OpenRouterHandler, PollinationsHandler } from "./llm";
 import { TypstDocument } from "./typst";
 import { ResumeData } from "./types/resume-data";
+import { InitOptions } from "@myriaddreamin/typst.ts/dist/esm/options.init.mjs";
+import compilerURL from "@myriaddreamin/typst-ts-web-compiler/pkg/typst_ts_web_compiler_bg.wasm?url";
+import rendererURL from "@myriaddreamin/typst-ts-renderer/pkg/typst_ts_renderer_bg.wasm?url";
 
 // User profile atom using ResumeData type
 export const userAtom = atom<ResumeData>({
@@ -206,8 +209,63 @@ export const llmHandlerAtom = atom((get) => {
   }
 });
 
+const fetchArrayBuffer = async (url: string) => {
+  const chunks: Array<Uint8Array<ArrayBufferLike>> = [];
+
+  const response = await fetch(new URL(url, import.meta.url), {
+    headers: {
+      "content-type": "application/wasm",
+    },
+  });
+
+  // const contentLength = response.headers.get("Content-Length");
+  let recievedLength = 0;
+
+  if (response.body) {
+    const reader = response.body.getReader();
+
+    while (response.body) {
+      const { done, value } = (await reader.read()) ?? {};
+
+      if (done) {
+        break;
+      }
+
+      recievedLength += value.length;
+      chunks.push(value);
+
+      // logger.log(`Received ${recievedLength} of ${contentLength}`);
+    }
+  }
+  const allChunks = new Uint8Array(recievedLength);
+
+  let position = 0;
+
+  for (const chunk of chunks) {
+    allChunks.set(chunk, position);
+    position += chunk.length;
+  }
+
+  return allChunks.buffer;
+};
+
+const createOptions: (url: string) => Promise<Partial<InitOptions>> = async (
+  url: string
+) => {
+  const arrayBuffer = await fetchArrayBuffer(url);
+  return {
+    getModule: () => arrayBuffer,
+  };
+};
+
 // Active Document State
-export const documentAtom = atom<TypstDocument>(new TypstDocument());
+export const documentAtom = atom(
+  async () =>
+    new TypstDocument(undefined, undefined, undefined, {
+      compiler: await createOptions(compilerURL),
+      renderer: await createOptions(rendererURL),
+    })
+);
 
 // Sheets State
 export const userSheetOpenAtom = atom(false);

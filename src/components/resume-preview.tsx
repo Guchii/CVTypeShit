@@ -4,6 +4,7 @@ import { Download, Eye } from "lucide-react";
 import { useAtom, useAtomValue } from "jotai";
 import { documentAtom, eyeSaverModeAtom } from "@/lib/atoms";
 import { cn } from "@/lib/utils";
+import { logger } from "@/lib/consola";
 
 function ResumePreview() {
   const typstDocument = useAtomValue(documentAtom);
@@ -26,6 +27,7 @@ function ResumePreview() {
   }, []);
 
   const updateContent = useCallback(async () => {
+    logger.debug("Content Updated Compiling to SVG", "resume-preview");
     const svg = await typstDocument.compileToSVG();
     if (contentRef.current) {
       contentRef.current.innerHTML = svg;
@@ -37,8 +39,9 @@ function ResumePreview() {
   }, [typstDocument, updateContent]);
 
   useEffect(() => {
-    typstDocument.fetchTemplateAndData()
+    typstDocument.fetchTemplateAndData();
   }, [typstDocument, updateContent]);
+
   const [eyeSaverMode, setEyeSaverMode] = useAtom(eyeSaverModeAtom);
 
   return (
@@ -51,7 +54,12 @@ function ResumePreview() {
             "bg-transparent [&>svg_use]:fill-white [&>svg_path]:stroke-white"
         )}
       >
-        <div className="prose prose-headings:text-foreground text-foreground p-32">
+        <div
+          className={cn(
+            "prose prose-headings:text-background text-background p-32",
+            eyeSaverMode && "text-foreground prose-headings:text-foreground"
+          )}
+        >
           <h1>LOADING IG....</h1>
           <p>Try refreshing if you're stuck at this state</p>
         </div>

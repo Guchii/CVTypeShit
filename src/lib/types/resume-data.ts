@@ -11,12 +11,11 @@ const ProfileSchema = z.object({
   username: z.string(),
   url: z.string(),
 }).describe("Profile");
-
 export const PersonalInfoSchema = z.object({
   name: z.string(),
   email: z.string().describe("Email address"),
   phone: z.string(),
-  url: z.string(),
+  url: z.string().url(),
   titles: z.array(z.string()),
   location: LocationSchema,
   profiles: z.array(ProfileSchema).optional(),
