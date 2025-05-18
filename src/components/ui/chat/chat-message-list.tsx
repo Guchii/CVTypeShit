@@ -20,12 +20,6 @@ const ChatMessageList = React.forwardRef<HTMLDivElement, ChatMessageListProps>(
       content: children,
     });
 
-    // const [parent, enableAnimations] = useAutoAnimate();
-
-    // React.useEffect(() => {
-    //   enableAnimations(true);
-    // },[enableAnimations])
-
     return (
       <div className="relative w-full h-full">
         <div

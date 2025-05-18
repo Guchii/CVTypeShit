@@ -6,7 +6,6 @@ import { ResumeData, ResumeDataSchema } from "./types/resume-data";
 import {
   BaseTypstDocument,
   CompilerInitOptions,
-  indexedDBStore,
 } from "./base-typst";
 import { loadJQ } from "./jq";
 import { logger } from "./consola";
@@ -71,8 +70,8 @@ export class TypstDocument extends BaseTypstDocument {
   }
 
   async cleanup() {
-    this.updateDocument("");
-    this.updateFile("/template.yml", "");
+    await this.updateDocument("");
+    await this.updateFile("/template.yml", "");
   }
 
   get data() {
@@ -179,17 +178,5 @@ export class TypstDocument extends BaseTypstDocument {
 
   getDataSchema(): ZodSchema {
     return ResumeDataSchema.deepPartial();
-  }
-
-  async resetDocument() {
-    await new Promise((resolve, reject) => {
-      const requst = indexedDB.deleteDatabase(indexedDBStore);
-      requst.onsuccess = () => {
-        resolve(true);
-      };
-      requst.onerror = () => {
-        reject(new Error("Failed to reset the database"));
-      };
-    });
   }
 }

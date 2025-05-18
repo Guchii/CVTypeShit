@@ -1,10 +1,5 @@
-import {
-  CoreAssistantMessage,
-  CoreMessage,
-  CoreToolMessage,
-  CoreUserMessage,
-} from "ai";
-import { ChatBubbleMessage } from "../ui/chat/chat-bubble";
+import { CoreAssistantMessage, CoreMessage, CoreUserMessage } from "ai";
+import { ChatBubble, ChatBubbleMessage } from "../ui/chat/chat-bubble";
 import _ from "lodash";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -16,26 +11,36 @@ type Props = CoreMessage;
 
 export function ChatMessage(props: Props) {
   switch (props.role) {
-    case "system":
-      return null;
     case "user":
-      return <UserMessage {...props} />;
-    case "assistant":
-      return <AssistantMessage {...props} />;
+      return (
+        <ChatBubble variant={"sent"}>
+          <UserMessage {...props} />
+        </ChatBubble>
+      );
+    case "assistant": {
+      const justTools =
+        _.isArray(props.content) &&
+        _.every(props.content, (part) => {
+          return part.type === "tool-call";
+        });
+      if (justTools) return null;
+      return (
+        <ChatBubble variant={"received"}>
+          <AssistantMessage {...props} />
+        </ChatBubble>
+      );
+    }
+    case "system":
     case "tool":
-      return <ToolMessage {...props} />;
     default:
-      return <div>Unknown</div>;
+      return null;
   }
 }
 
 function UserMessage(props: CoreUserMessage) {
   if (typeof props.content === "string") {
     return (
-      <ChatBubbleMessage
-        variant={props.role === "user" ? "sent" : "received"}
-        role="user"
-      >
+      <ChatBubbleMessage variant="sent" role="user">
         {props.content}
       </ChatBubbleMessage>
     );
@@ -62,9 +67,7 @@ function AssistantMessage(props: CoreAssistantMessage) {
                       <CollapsibleTrigger className="cursor-pointer flex items-center gap-3 justify-between w-fit">
                         <strong className="flex items-center gap-2">
                           Tool Request
-                          <span>
-                            {_.startCase(part.toolName)} 🙋‍♀
-                          </span>
+                          <span>{_.startCase(part.toolName)} 🙋‍♀</span>
                         </strong>
                         <InfoIcon />
                       </CollapsibleTrigger>
@@ -81,26 +84,6 @@ function AssistantMessage(props: CoreAssistantMessage) {
             }
           })}
       </div>
-    </ChatBubbleMessage>
-  );
-}
-
-function ToolMessage(props: CoreToolMessage) {
-  return (
-    <ChatBubbleMessage role="tool">
-      {_.isArray(props.content) &&
-        props.content.map((part, i) => {
-          return (
-            <div className="flex items-center not-prose" key={i}>
-              {_.startCase(part.toolName)}{" "}
-              {_.isString(part.result) && _.includes(part.result, "Failed") ? (
-                <span className="w-fit">Failed 😭</span>
-              ) : (
-                "✅"
-              )}
-            </div>
-          );
-        })}
     </ChatBubbleMessage>
   );
 }

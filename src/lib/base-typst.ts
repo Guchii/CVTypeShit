@@ -101,7 +101,10 @@ export class BaseTypstDocument {
             async () => {
               logger.debug(`${file.path} written to storage`);
               logger.start(`shadow mapping ${file.path}`);
-              await this.typst.mapShadow(file.path, new TextEncoder().encode(data));
+              await this.typst.mapShadow(
+                file.path,
+                new TextEncoder().encode(data)
+              );
             }
           );
         }
@@ -158,7 +161,7 @@ export class BaseTypstDocument {
       this.observers.forEach((observer) => observer(this.mainContent));
     } catch (e) {
       await this.updateFileContent(path, oldContent as string);
-      throw new BuildFailedError(path, e)
+      throw new BuildFailedError(path, e);
     }
   }
 
@@ -176,5 +179,17 @@ export class BaseTypstDocument {
 
   getDataSchema(): ZodSchema {
     return z.object({});
+  }
+
+  static async resetDocument() {
+    await new Promise((resolve, reject) => {
+      const requst = indexedDB.deleteDatabase(indexedDBStore);
+      requst.onsuccess = () => {
+        resolve(true);
+      };
+      requst.onerror = () => {
+        reject(new Error("Failed to reset the database"));
+      };
+    });
   }
 }

@@ -7,7 +7,12 @@ import { llmHandlerAtom } from "@/lib/atoms";
 
 import { atomWithStorage, RESET } from "jotai/utils";
 
-import { CoreMessage, ToolCallPart, ToolResultPart, ToolSet } from "ai";
+import {
+  CoreMessage,
+  smoothStream,
+  ToolCallPart,
+  ToolSet,
+} from "ai";
 import SYSTEM_PROMPT from "@/lib/prompts/system-prompt";
 
 export const messagesAtom = atomWithStorage<CoreMessage[]>("messages", [
@@ -32,7 +37,7 @@ export default function useChat({ tools }: { tools: ToolSet } = { tools: {} }) {
   const [lastAIMessage, setLastAIMessage] = useState<{
     status: "loading" | "streaming" | "complete" | "error";
     content: string;
-    tool_calls: (ToolCallPart & { completed ?: true})[];
+    tool_calls: (ToolCallPart & { completed?: true })[];
   }>({
     status: "complete",
     content: "",
@@ -56,22 +61,8 @@ export default function useChat({ tools }: { tools: ToolSet } = { tools: {} }) {
       tools: tools,
       abortSignal: abortController.current.signal,
       experimental_continueSteps: true,
+      experimental_transform: smoothStream(),
       maxSteps: 10,
-      onStepFinish: ({ toolResults }) => {
-        setLastAIMessage((prev) => ({
-          ...prev,
-          tool_calls: prev.tool_calls.map((toolCall) => {
-            const completed = 
-              toolResults.some((toolResult) => {
-                return (toolResult as ToolResultPart).toolCallId === toolCall.toolCallId;
-              });
-            if (completed) {
-              toolCall.completed = true;
-            }
-            return toolCall;
-          }),
-        }));
-      },
       onFinish: (e) => {
         setLastAIMessage({
           content: "",

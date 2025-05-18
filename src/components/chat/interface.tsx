@@ -66,12 +66,7 @@ export default function ChatInterface() {
         <ChatMessageList smooth>
           {messages.length - 1 === 0 && <Greeting />}
           {messages.map((message, i) => (
-            <ChatBubble
-              key={i}
-              variant={message.role === "user" ? "sent" : "received"}
-            >
-              <ChatMessage {...message} />
-            </ChatBubble>
+              <ChatMessage key={i} {...message} />
           ))}
           {lastAIMessage.status !== "complete" && (
             <Fragment>
@@ -111,6 +106,7 @@ export default function ChatInterface() {
                     <ToolCall
                       key={i}
                       toolName={call.toolName as "query" | "mutate"}
+                      completed={call.completed}
                       query={call.args.jqQuery}
                     />
                   );

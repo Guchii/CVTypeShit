@@ -8,8 +8,9 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { atom, useAtom, useSetAtom } from "jotai";
+import { atom, useAtom, useAtomValue, useSetAtom } from "jotai";
 import {
+  documentAtom,
   filesSheetOpenAtom,
   llmSheetOpenAtom,
   userSheetOpenAtom,
@@ -89,6 +90,7 @@ export default function HeaderBar() {
 }
 export const ResetAlertDialog = () => {
   const resetMessages = useSetAtom(resetMessagesAtom);
+  const typstDocument = useAtomValue(documentAtom);
   const [resetMessagesAlert, setResetMessagesAlert] = useAtom(
     resetMessagesAlertAtom
   );
@@ -105,7 +107,10 @@ export const ResetAlertDialog = () => {
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <AlertDialogAction onClick={() => resetMessages()}>
+          <AlertDialogAction onClick={async () => {
+            await typstDocument.fetchTemplateAndData();
+            resetMessages();
+          }}>
             Continue
           </AlertDialogAction>
         </AlertDialogFooter>
