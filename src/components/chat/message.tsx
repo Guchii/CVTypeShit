@@ -60,25 +60,6 @@ function AssistantMessage(props: CoreAssistantMessage) {
                     {part.text}
                   </Markdown>
                 );
-              case "tool-call":
-                return (
-                  <div className="flex items-center gap-2 not-prose" key={i}>
-                    <Collapsible>
-                      <CollapsibleTrigger className="cursor-pointer flex items-center gap-3 justify-between w-fit">
-                        <strong className="flex items-center gap-2">
-                          Tool Request
-                          <span>{_.startCase(part.toolName)} 🙋‍♀</span>
-                        </strong>
-                        <InfoIcon />
-                      </CollapsibleTrigger>
-                      <CollapsibleContent>
-                        <pre className="space-y-4 mt-4 max-w-[560px] overflow-scroll">
-                          {JSON.stringify(part.args, null, 2)}
-                        </pre>
-                      </CollapsibleContent>
-                    </Collapsible>
-                  </div>
-                );
               default:
                 return null;
             }
