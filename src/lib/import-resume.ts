@@ -106,11 +106,12 @@ export class ImportResume {
     }
     const id = toast.loading("Extracting resume data...");
     const llmHandler = store.get(llmHandlerAtom);
-    const document = store.get(documentAtom);
+    const document = await store.get(documentAtom);
     try {
       const resumeData = await generateObject({
         mode: "json",
         model: llmHandler.model,
+        maxRetries: 3,
         schema: ResumeDataSchema,
         prompt:
           "Extract the resume data from the text, for the URL Fields populate it with any random valid links, dates are required in YYYY-MM-DD format, add random valid dates wherever required" +
@@ -119,7 +120,7 @@ export class ImportResume {
       });
       document.data = resumeData.object;
     } catch (error) {
-      console.error("Error updating document data:", error);
+      console.error(error);
       toast.error("Failed to update resume data.");
     }
     toast.dismiss(id);

@@ -23,8 +23,8 @@ export const PersonalInfoSchema = z.object({
 
 const PositionSchema = z.object({
   position: z.string(),
-  startDate: z.string(), // Could also be Date, but keeping it string for consistency
-  endDate: z.string().or(z.literal("present")), // Could also be Date | "present"
+  startDate: z.string().date(),
+  endDate: z.string().date().or(z.literal("present")),
   highlights: z.array(z.string()),
 }).describe("Position");
 
@@ -42,8 +42,8 @@ const EducationSchema = z.object({
   url: z.string(),
   area: z.string(),
   studyType: z.string(),
-  startDate: z.string(), // Could also be Date, but keeping it string for consistency
-  endDate: z.string(), // Could also be Date, but keeping it string for consistency
+  startDate: z.string().date(),
+  endDate: z.string().date().or(z.literal("present")),
   location: z.string(),
   honors: z.array(z.string()),
   courses: z.array(z.string()),
@@ -54,24 +54,24 @@ const AffiliationSchema = z.object({
   organization: z.string(),
   position: z.string(),
   location: z.string(),
-  url: z.string().optional(), // Optional based on YAML example
-  startDate: z.string(), // Could also be Date, but keeping it string for consistency
-  endDate: z.string(), // Could also be Date, but keeping it string for consistency
+  url: z.string().optional(),
+  startDate: z.string().date(),
+  endDate: z.string().date(),
   highlights: z.array(z.string()),
 }).describe("Affiliation");
 
 const AwardSchema = z.object({
   title: z.string(),
-  date: z.string(), // Could also be Date, but keeping it string for consistency
+  date: z.string().date(),
   issuer: z.string(),
-  url: z.string().optional(), // Optional based on YAML example
+  url: z.string().optional(),
   location: z.string(),
   highlights: z.array(z.string()),
 }).describe("Award");
 
 const CertificateSchema = z.object({
   name: z.string(),
-  date: z.string(), // Could also be Date, but keeping it string for consistency
+  date: z.string().date(),
   issuer: z.string(),
   url: z.string(),
   id: z.string(),
@@ -80,7 +80,7 @@ const CertificateSchema = z.object({
 const PublicationSchema = z.object({
   name: z.string(),
   publisher: z.string(),
-  releaseDate: z.string(), // Could also be Date, but keeping it string for consistency
+  releaseDate: z.string().date(),
   url: z.string(),
 }).describe("Publication");
 
@@ -88,8 +88,8 @@ const ProjectSchema = z.object({
   name: z.string(),
   url: z.string(),
   affiliation: z.string(),
-  startDate: z.string(), // Could also be Date, but keeping it string for consistency
-  endDate: z.string(), // Could also be Date, but keeping it string for consistency
+  startDate: z.string().date(), 
+  endDate: z.string().date(),
   highlights: z.array(z.string()),
 }).describe("Project");
 
