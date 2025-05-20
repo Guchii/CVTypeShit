@@ -1,10 +1,19 @@
 import React, { useCallback, useEffect, useRef } from "react";
 import { Button } from "./ui/button";
-import { Download, Eye } from "lucide-react";
+import { Eye } from "lucide-react";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
-import { documentAtom, eyeSaverModeAtom, typstLoadedAtom, appLoadingAtom } from "@/lib/atoms";
+import {
+  documentAtom,
+  eyeSaverModeAtom,
+  typstLoadedAtom,
+  appLoadingAtom,
+} from "@/lib/atoms";
 import { cn } from "@/lib/utils";
 import { logger } from "@/lib/consola";
+import compilerURL from "@myriaddreamin/typst-ts-web-compiler/pkg/typst_ts_web_compiler_bg.wasm?url";
+import rendererURL from "@myriaddreamin/typst-ts-renderer/pkg/typst_ts_renderer_bg.wasm?url";
+
+const timeout = 4;
 
 function ResumePreview() {
   const typstDocument = useAtomValue(documentAtom);
@@ -13,19 +22,25 @@ function ResumePreview() {
 
   const contentRef = useRef<HTMLDivElement>(null);
 
-  const handleExportPDF = useCallback(async () => {
-    const pdf = await typstDocument.compileToPdf();
-    if (pdf) {
-      const blob = new Blob([pdf], { type: "application/pdf" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "document.pdf";
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    }
+  useEffect(() => {
+    (async () => {
+      const ac = new AbortController();
+      const promise = fetch(compilerURL, { signal: ac.signal })
+        .then(() => true)
+        .catch(() => false);
+
+      const ac2 = new AbortController();
+      const promise2 = fetch(rendererURL, { signal: ac2.signal })
+        .then(() => true)
+        .catch(() => false);
+
+      setTimeout(() => ac.abort(), timeout);
+      return Promise.all([promise, promise2]);
+    })().then((cached) => {
+      if (cached.every((val) => val)) {
+        typstDocument.loadTypst();
+      }
+    });
   }, []);
 
   const updateContent = useCallback(async () => {
@@ -50,9 +65,9 @@ function ResumePreview() {
       typstDocument.afterLoadQueue.push(() => {
         setLoaded(true);
         setAppLoading(false);
-      })
+      });
     }
-  }, [typstDocument, setLoaded])
+  }, [typstDocument, setLoaded]);
 
   const [eyeSaverMode, setEyeSaverMode] = useAtom(eyeSaverModeAtom);
 
@@ -93,15 +108,6 @@ function ResumePreview() {
         >
           <Eye className="h-4 w-4 mr-2" />
           {eyeSaverMode ? "Disable Eye Saver" : "Enable Eye Saver"}
-        </Button>
-        <Button
-          onClick={handleExportPDF}
-          className="hover:scale-125 origin-top-right ease-[cubic-bezier(0.85,0,0.15,1)] duration-300"
-          variant="default"
-          size="sm"
-        >
-          <Download className="h-4 w-4 mr-2" />
-          Export PDF
         </Button>
       </div>
     </div>

@@ -1,0 +1,17 @@
+{
+    "headers": [
+         {
+      "source": "/assets/typst_ts_web_compiler_bg-.+\\.wasm",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=259200"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        }
+      ]
+    }
+]
+}

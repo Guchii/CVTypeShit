@@ -1,6 +1,6 @@
 "use client";
 
-import { BrainCog, DatabaseZap, Folders, LucideRefreshCcw } from "lucide-react";
+import { BrainCog, DatabaseZap, DownloadIcon, Folders, LucideRefreshCcw } from "lucide-react";
 import { resetMessagesAtom } from "@/hooks/use-chat";
 import { Button } from "@/components/ui/button";
 import {
@@ -9,12 +9,13 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { atom, useAtom, useAtomValue, useSetAtom } from "jotai";
+import { useCallback } from "react";
 import {
-  documentAtom,
   filesSheetOpenAtom,
   llmSheetOpenAtom,
   userSheetOpenAtom,
-  typstLoadedAtom
+  typstLoadedAtom,
+  documentAtom
 } from "@/lib/atoms";
 import {
   AlertDialog,
@@ -28,12 +29,30 @@ import {
 } from "@/components/ui/alert-dialog";
 
 export const resetMessagesAlertAtom = atom(false);
+
 export default function HeaderBar() {
+  const typstDocument = useAtomValue(documentAtom);
   const setUserSheetOpen = useSetAtom(userSheetOpenAtom);
   const setLlmSheetOpen = useSetAtom(llmSheetOpenAtom);
   const setFilesSheetOpen = useSetAtom(filesSheetOpenAtom);
   const setResetMessagesAlert = useSetAtom(resetMessagesAlertAtom);
   const typstLoaded = useAtomValue(typstLoadedAtom);
+
+   const handleExportPDF = useCallback(async () => {
+    const pdf = await typstDocument.compileToPdf();
+    if (pdf) {
+      const blob = new Blob([pdf], { type: "application/pdf" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "document.pdf";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+  }, []);
+
   return (
     <div className="flex items-center gap-2 [&_button]:bg-sidebar">
       <Tooltip>
@@ -48,6 +67,19 @@ export default function HeaderBar() {
           </Button>
         </TooltipTrigger>
         <TooltipContent>Data</TooltipContent>
+      </Tooltip>
+       <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => handleExportPDF()}
+            disabled={!typstLoaded}
+          >
+            <DownloadIcon className="h-5 w-5" />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>Download PDF</TooltipContent>
       </Tooltip>
       <Tooltip>
         <TooltipTrigger asChild>
