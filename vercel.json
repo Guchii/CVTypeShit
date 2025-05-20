@@ -1,7 +1,7 @@
 {
-    "headers": [
-         {
-      "source": "/assets/typst_ts_web_compiler_bg-.+\\.wasm",
+  "headers": [
+    {
+      "source": "/assets/typst_ts_:_.wasm",
       "headers": [
         {
           "key": "Cache-Control",
@@ -13,5 +13,5 @@
         }
       ]
     }
-]
+  ]
 }
