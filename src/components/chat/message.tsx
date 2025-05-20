@@ -3,9 +3,6 @@ import { ChatBubble, ChatBubbleMessage } from "../ui/chat/chat-bubble";
 import _ from "lodash";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { Collapsible, CollapsibleContent } from "../ui/collapsible";
-import { CollapsibleTrigger } from "@radix-ui/react-collapsible";
-import { InfoIcon } from "lucide-react";
 
 type Props = CoreMessage;
 

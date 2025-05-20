@@ -18,7 +18,7 @@ import HeaderBar, {
   resetMessagesAlertAtom,
 } from "./dashboard/header-bar";
 import { cn } from "@/lib/utils";
-import { Suspense } from "react";
+import AppLoader from "./app-loader";
 
 export default function Layout() {
   const [userSheetOpen, setUserSheetOpen] = useAtom(userSheetOpenAtom);
@@ -38,16 +38,15 @@ export default function Layout() {
           anySheetOpen && "p-32"
         )}
       >
+        <AppLoader />
         <div className="flex flex-col flex-1 overflow-hidden">
-          <div className="flex absolute left-0 top-0 items-center justify-between bg-sidebar px-6 py-4 z-30">
+          <div className="flex absolute left-0 top-0 items-center justify-between px-6 py-4 z-[var(--z-header-bar)]">
             <HeaderBar />
           </div>
           <ChatInterface />
         </div>
         <div className="w-[650px] bg-sidebar relative p-6 grid place-items-center">
-          <Suspense fallback={<div>Crazy</div>}>
-            <ResumePreview />
-          </Suspense>
+          <ResumePreview />
         </div>
         <UserProfileSheet
           open={userSheetOpen}

@@ -27,14 +27,13 @@ import {
 } from "@/components/ui/alert-dialog";
 
 export const resetMessagesAlertAtom = atom(false);
-
 export default function HeaderBar() {
   const setUserSheetOpen = useSetAtom(userSheetOpenAtom);
   const setLlmSheetOpen = useSetAtom(llmSheetOpenAtom);
   const setFilesSheetOpen = useSetAtom(filesSheetOpenAtom);
   const setResetMessagesAlert = useSetAtom(resetMessagesAlertAtom);
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-2 [&_button]:bg-sidebar">
       <Tooltip>
         <TooltipTrigger asChild>
           <Button

@@ -112,6 +112,9 @@
   --dark-accent: #e3bad1;
   --chat-input-background: hsla(270, 10%, 20%, var(--blur-fallback, 0.4));
   --chat-background: hsl(270 16.13% 12.16%);
+  
+  --z-loader: 20;
+  --z-header-bar: 30;
 }
 
 .dark {
@@ -246,4 +249,51 @@
   100% {
     background-position: -23px 0px, 12px 35px;
   }
+}
+
+.fancy-wrapper {
+  clip-path: polygon(
+    0% 0%,
+    0% 100%,
+    10px 100%,
+    10px 10px,
+    calc(100% - 10px) 10px,
+    calc(100% - 10px) calc(100% - 10px),
+    10px calc(100% - 10px),
+    10px 100%,
+    100% 100%,
+    100% 0%
+  );
+  z-index: var(--z-loader);
+}
+
+.fancy {
+    --offset: 30px;
+    overflow: hidden;
+    position: relative;
+    height: 100%;
+    width: 100%;
+}
+
+/* Conic gradient */
+.fancy::before { 
+    content: '';
+    background: conic-gradient(transparent 270deg, white, transparent);
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    aspect-ratio: 1;
+    width: 100%;
+    animation: rotate 0.5s cubic-bezier(0.85, 0, 0.15, 1) infinite;
+}
+
+@keyframes rotate {
+    from {
+        transform: translate(-50%, -50%) scale(1.4) rotate(0turn);
+    }
+
+    to {
+        transform: translate(-50%, -50%) scale(1.4) rotate(1turn);
+    }
 }
