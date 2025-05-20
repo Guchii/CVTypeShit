@@ -11,25 +11,27 @@ type TypstFile = {
 };
 
 export type CompilerInitOptions = {
-  compiler: Partial<InitOptions>;
-  renderer: Partial<InitOptions>;
+  compiler: () => Promise<Partial<InitOptions>>;
+  renderer: () => Promise<Partial<InitOptions>>;
 };
 
 const defaultCompilerOptions: CompilerInitOptions = {
-  compiler: {
-    getModule: () =>
-      new URL(
-        "@myriaddreamin/typst-ts-web-compiler/pkg/typst_ts_web_compiler_bg.wasm",
-        import.meta.url
-      ),
-  },
-  renderer: {
-    getModule: () =>
-      new URL(
-        "@myriaddreamin/typst-ts-renderer/pkg/typst_ts_renderer_bg.wasm",
-        import.meta.url
-      ),
-  },
+  compiler: () =>
+    Promise.resolve({
+      getModule: () =>
+        new URL(
+          "@myriaddreamin/typst-ts-web-compiler/pkg/typst_ts_web_compiler_bg.wasm",
+          import.meta.url
+        ),
+    }),
+  renderer: () =>
+    Promise.resolve({
+      getModule: () =>
+        new URL(
+          "@myriaddreamin/typst-ts-renderer/pkg/typst_ts_renderer_bg.wasm",
+          import.meta.url
+        ),
+    }),
 };
 
 export const indexedDBStore = "resume-bandhuu";
@@ -39,6 +41,11 @@ export class BaseTypstDocument {
   private observers: ((content: string) => void)[] = [];
   private mainContent: string = "";
   public fs: FS;
+  public isTypstLoaded: boolean = false;
+
+  public afterLoadQueue: (() => void)[] = [];
+
+  public beforeLoadQueue: (() => void)[] = [];
 
   /**
    *
@@ -48,68 +55,75 @@ export class BaseTypstDocument {
   constructor(
     mainContent: string,
     files: TypstFile[],
-    compilerInitOptions: CompilerInitOptions = defaultCompilerOptions
+    private compilerInitOptions: CompilerInitOptions = defaultCompilerOptions
   ) {
     logger.start(BaseTypstDocument.name);
-
-    $typst.setCompilerInitOptions(compilerInitOptions.compiler);
-    $typst.setRendererInitOptions(compilerInitOptions.renderer);
-
-    this.typst = $typst;
-
     this.fs = new FS(indexedDBStore);
-
-    this.fs.readFile("/main.typ", { encoding: "utf8" }, (e, data) => {
-      logger.ready("/main.typ");
-      if (e) {
-        this.mainContent = mainContent;
-        this.fs.writeFile(
-          "/main.typ",
-          mainContent,
-          { encoding: "utf8", mode: 0o777 },
-          () => {}
-        );
-      }
-      if (data) {
-        this.mainContent = data;
-      }
-    });
-
-    // Map other files
-    files.forEach((file) => {
-      this.fs.readFile(file.path, { encoding: "utf8" }, (e, data) => {
-        logger.ready(file.path);
+    console.log(this);
+    this.typst = $typst;
+    this.afterLoadQueue.push(() => {
+      this.fs.readFile("/main.typ", { encoding: "utf8" }, (e, data) => {
+        logger.ready("/main.typ");
         if (e) {
-          logger.log(`Error reading file ${file.path}: ${e}`);
+          this.mainContent = mainContent;
           this.fs.writeFile(
-            file.path,
-            file.content,
+            "/main.typ",
+            mainContent,
             { encoding: "utf8", mode: 0o777 },
-            async () => {
-              await this.typst.mapShadow(
-                file.path,
-                new TextEncoder().encode(file.content)
-              );
-            }
+            () => {}
           );
         }
         if (data) {
-          this.fs.writeFile(
-            file.path,
-            data,
-            { encoding: "utf8", mode: 0o777 },
-            async () => {
-              logger.debug(`${file.path} written to storage`);
-              logger.start(`shadow mapping ${file.path}`);
-              await this.typst.mapShadow(
-                file.path,
-                new TextEncoder().encode(data)
-              );
-            }
-          );
+          this.mainContent = data;
         }
       });
+
+      // Map other files
+      files.forEach((file) => {
+        this.fs.readFile(file.path, { encoding: "utf8" }, (e, data) => {
+          logger.ready(file.path);
+          if (e) {
+            logger.log(`Error reading file ${file.path}: ${e}`);
+            this.fs.writeFile(
+              file.path,
+              file.content,
+              { encoding: "utf8", mode: 0o777 },
+              async () => {
+                await this.typst.mapShadow(
+                  file.path,
+                  new TextEncoder().encode(file.content)
+                );
+              }
+            );
+          }
+          if (data) {
+            this.fs.writeFile(
+              file.path,
+              data,
+              { encoding: "utf8", mode: 0o777 },
+              async () => {
+                logger.debug(`${file.path} written to storage`);
+                logger.start(`shadow mapping ${file.path}`);
+                await this.typst.mapShadow(
+                  file.path,
+                  new TextEncoder().encode(data)
+                );
+              }
+            );
+          }
+        });
+      });
     });
+  }
+
+  public async loadTypst() {
+    this.beforeLoadQueue.forEach((fn) => fn());
+    const compilerInitOptions = await this.compilerInitOptions.compiler();
+    const rendererInitOptions = await this.compilerInitOptions.renderer();
+    $typst.setCompilerInitOptions(compilerInitOptions);
+    $typst.setRendererInitOptions(rendererInitOptions);
+    this.isTypstLoaded = true;
+    this.afterLoadQueue.forEach((fn) => fn());
   }
 
   getContent(): string {

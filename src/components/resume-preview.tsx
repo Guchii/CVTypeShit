@@ -1,13 +1,15 @@
 import React, { useCallback, useEffect, useRef } from "react";
 import { Button } from "./ui/button";
 import { Download, Eye } from "lucide-react";
-import { useAtom, useAtomValue } from "jotai";
-import { documentAtom, eyeSaverModeAtom } from "@/lib/atoms";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
+import { documentAtom, eyeSaverModeAtom, typstLoadedAtom, appLoadingAtom } from "@/lib/atoms";
 import { cn } from "@/lib/utils";
 import { logger } from "@/lib/consola";
 
 function ResumePreview() {
   const typstDocument = useAtomValue(documentAtom);
+  const setLoaded = useSetAtom(typstLoadedAtom);
+  const [appLoading, setAppLoading] = useAtom(appLoadingAtom);
 
   const contentRef = useRef<HTMLDivElement>(null);
 
@@ -42,6 +44,16 @@ function ResumePreview() {
     typstDocument.fetchTemplateAndData();
   }, [typstDocument, updateContent]);
 
+  useEffect(() => {
+    if (!typstDocument.isTypstLoaded) {
+      typstDocument.beforeLoadQueue.push(() => setAppLoading(true));
+      typstDocument.afterLoadQueue.push(() => {
+        setLoaded(true);
+        setAppLoading(false);
+      })
+    }
+  }, [typstDocument, setLoaded])
+
   const [eyeSaverMode, setEyeSaverMode] = useAtom(eyeSaverModeAtom);
 
   return (
@@ -60,11 +72,20 @@ function ResumePreview() {
             eyeSaverMode && "text-foreground prose-headings:text-foreground"
           )}
         >
-          <h1>LOADING IG....</h1>
-          <p>Try refreshing if you're stuck at this state</p>
+          {!typstDocument.isTypstLoaded && !appLoading ? (
+            <div className="flex flex-col gap-2 items-center h-full w-full justify-center">
+              <Button onClick={() => typstDocument.loadTypst()}>
+                Load Compiler (7.5MB)
+              </Button>
+            </div>
+          ) : (
+            <div>
+              <h1>Loading Compiler....</h1>
+            </div>
+          )}
         </div>
       </div>
-      <div className="fixed top-0 right-0">
+      <div className="fixed top-0 right-0 z-[var(--z-header-bar)]">
         <Button
           onClick={() => setEyeSaverMode((prev) => !prev)}
           variant="default"

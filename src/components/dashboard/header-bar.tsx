@@ -14,6 +14,7 @@ import {
   filesSheetOpenAtom,
   llmSheetOpenAtom,
   userSheetOpenAtom,
+  typstLoadedAtom
 } from "@/lib/atoms";
 import {
   AlertDialog,
@@ -32,6 +33,7 @@ export default function HeaderBar() {
   const setLlmSheetOpen = useSetAtom(llmSheetOpenAtom);
   const setFilesSheetOpen = useSetAtom(filesSheetOpenAtom);
   const setResetMessagesAlert = useSetAtom(resetMessagesAlertAtom);
+  const typstLoaded = useAtomValue(typstLoadedAtom);
   return (
     <div className="flex items-center gap-2 [&_button]:bg-sidebar">
       <Tooltip>
@@ -40,6 +42,7 @@ export default function HeaderBar() {
             variant="outline"
             size="icon"
             onClick={() => setUserSheetOpen(true)}
+            disabled={!typstLoaded}
           >
             <DatabaseZap className="h-5 w-5" />
           </Button>

@@ -13,6 +13,7 @@ import {
   activeLLMConfigAtom,
   documentAtom,
   llmSheetOpenAtom,
+  typstLoadedAtom
 } from "@/lib/atoms";
 import { ChatMessageList } from "../ui/chat/chat-message-list";
 import Markdown from "react-markdown";
@@ -34,6 +35,7 @@ import _ from "lodash";
 
 export default function ChatInterface() {
   const typstDocument = useAtomValue(documentAtom);
+  const typstLoaded = useAtomValue(typstLoadedAtom);
 
   const tools = useMemo(() => {
     return typstDocument.getTools();
@@ -122,6 +124,7 @@ export default function ChatInterface() {
             onClick={() => {
               triggerImportResume();
             }}
+            disabled={!typstLoaded}
             className="hover:border-ring rounded-md"
           >
             Import Resume
@@ -137,7 +140,7 @@ export default function ChatInterface() {
           <PromptInputTextarea
             className="text-foreground"
             placeholder="Tell about yourself or paste a JD or just ask a question"
-            disabled={isLoading}
+            disabled={isLoading || !typstLoaded}
           />
           <PromptInputActions className="justify-end pt-2">
             <PromptInputAction
@@ -159,6 +162,7 @@ export default function ChatInterface() {
                 variant="default"
                 size="icon"
                 className="h-8 w-8 bg-white text-accent-foreground hover:bg-accent/80"
+                disabled={!input.length || !typstLoaded}
                 onClick={
                   isLoading
                     ? () => abortController.current.abort()

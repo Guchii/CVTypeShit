@@ -3,10 +3,7 @@ import { parse, stringify } from "yaml";
 import { z, ZodSchema } from "zod";
 
 import { ResumeData, ResumeDataSchema } from "./types/resume-data";
-import {
-  BaseTypstDocument,
-  CompilerInitOptions,
-} from "./base-typst";
+import { BaseTypstDocument, CompilerInitOptions } from "./base-typst";
 import { loadJQ } from "./jq";
 import { logger } from "./consola";
 import _ from "lodash";
@@ -35,6 +32,15 @@ export class TypstDocument extends BaseTypstDocument {
   }
 
   async fetchTemplateAndData() {
+    if (!this.isTypstLoaded) {
+      logger.debug(
+        "Typst not loaded adding " +
+          this.fetchTemplateAndData.name +
+          " to after load queue"
+      );
+      return this.afterLoadQueue.push(() => this.fetchTemplateAndData());
+    }
+
     try {
       const template = await this.fs.promises.readFile("/main.typ", {
         encoding: "utf8",
@@ -91,7 +97,7 @@ export class TypstDocument extends BaseTypstDocument {
     }
   }
 
-   async setdata(data: ResumeData) {
+  async setdata(data: ResumeData) {
     const oldData = _.cloneDeep(this._data);
     this._data = data;
     try {
@@ -131,8 +137,8 @@ export class TypstDocument extends BaseTypstDocument {
               jqQuery
             );
 
-            await this.setdata(JSON.parse(jsonString))
-            toast.success("Resume Updated")
+            await this.setdata(JSON.parse(jsonString));
+            toast.success("Resume Updated");
             return "Success";
           } catch (e) {
             this.handleError(e);
@@ -167,10 +173,10 @@ export class TypstDocument extends BaseTypstDocument {
     return tools;
   }
 
-  private handleError(e: unknown, displayToast = true){
+  private handleError(e: unknown, displayToast = true) {
     if (BuildFailedError.isBuildFailedError(e)) {
       logger.error(e);
-      if (displayToast) toast.error(e.message)
+      if (displayToast) toast.error(e.message);
       return;
     }
     logger.error(new Error("JQ Errored Out"), e);

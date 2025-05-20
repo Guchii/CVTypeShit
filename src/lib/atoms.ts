@@ -259,13 +259,14 @@ const createOptions: (url: string) => Promise<Partial<InitOptions>> = async (
 };
 
 // Active Document State
-export const documentAtom = atom(
-  async () =>
+export const documentAtom = atom(() =>
     new TypstDocument(undefined, undefined, undefined, {
-      compiler: await createOptions(compilerURL),
-      renderer: await createOptions(rendererURL),
+      compiler: () => createOptions(compilerURL),
+      renderer: () => createOptions(rendererURL),
     })
 );
+
+export const typstLoadedAtom = atom(false);
 
 // Sheets State
 export const userSheetOpenAtom = atom(false);
@@ -288,5 +289,7 @@ export const modelsAtom = atomWithQuery((get) => {
     refetchOnReconnect: false,
   };
 });
+
+export const appLoadingAtom = atom(false);
 
 export const eyeSaverModeAtom = atomWithStorage("eye-saver-mode", false);
