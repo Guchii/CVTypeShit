@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils";
 import { logger } from "@/lib/consola";
 import compilerURL from "@myriaddreamin/typst-ts-web-compiler/pkg/typst_ts_web_compiler_bg.wasm?url";
 import rendererURL from "@myriaddreamin/typst-ts-renderer/pkg/typst_ts_renderer_bg.wasm?url";
+import flowers from "@/../public/flowers.svg?raw";
 
 const timeout = 4;
 
@@ -21,7 +22,6 @@ function ResumePreview() {
   const [appLoading, setAppLoading] = useAtom(appLoadingAtom);
 
   const contentRef = useRef<HTMLDivElement>(null);
-
   useEffect(() => {
     (async () => {
       const ac = new AbortController();
@@ -35,6 +35,7 @@ function ResumePreview() {
         .catch(() => false);
 
       setTimeout(() => ac.abort(), timeout);
+      setTimeout(() => ac2.abort(), timeout);
       return Promise.all([promise, promise2]);
     })().then((cached) => {
       if (cached.every((val) => val)) {
@@ -52,6 +53,9 @@ function ResumePreview() {
   }, [typstDocument]);
 
   useEffect(() => {
+    if (contentRef.current) {
+      contentRef.current.innerHTML = flowers;
+    }
     typstDocument.subscribeToChanges(updateContent);
   }, [typstDocument, updateContent]);
 
@@ -72,34 +76,38 @@ function ResumePreview() {
   const [eyeSaverMode, setEyeSaverMode] = useAtom(eyeSaverModeAtom);
 
   return (
-    <div className="h-[87%] w-full bg-transparent overflow-auto my-4 max-w-3xl mx-auto">
+    <div className="h-[87%] w-full bg-transparent relative overflow-auto my-4 max-w-3xl mx-auto">
       <div
         ref={contentRef}
         className={cn(
-          "w-full [&>svg]:w-full bg-white border border-white h-full overflow-auto rounded-lg",
+          "w-full [&>svg]:w-full [&>svg#flower]:scale-[2.2] bg-white border border-white h-full overflow-auto rounded-lg",
           eyeSaverMode &&
-            "bg-transparent [&>svg_use]:fill-white [&>svg_path]:stroke-white"
+            "bg-transparent [&>svg_use]:fill-white [&>svg_path]:stroke-white",
+          !typstDocument.isTypstLoaded && "overflow-hidden"
+        )}
+      />
+      <div
+        className={cn(
+          "left-1/2 top-1/2 absolute -translate-x-[50%] -translate-y-[50%]",
+          "prose prose-headings:text-background text-background p-32",
+          eyeSaverMode && "text-foreground prose-headings:text-foreground"
         )}
       >
-        <div
-          className={cn(
-            "prose prose-headings:text-background text-background p-32",
-            eyeSaverMode && "text-foreground prose-headings:text-foreground"
-          )}
-        >
-          {!typstDocument.isTypstLoaded && !appLoading ? (
-            <div className="flex flex-col gap-2 items-center h-full w-full justify-center">
-              <Button onClick={() => typstDocument.loadTypst()}>
-                Load Compiler (7.5MB)
-              </Button>
-            </div>
-          ) : (
-            <div>
-              <h1>Loading Compiler....</h1>
-            </div>
-          )}
-        </div>
+        {!typstDocument.isTypstLoaded && (
+          <div className="flex flex-col gap-2 items-center h-full w-full justify-center">
+            <Button disabled={appLoading} size={"lg"} onClick={() => typstDocument.loadTypst()}>
+              {appLoading ? (
+                "Loading Compiler"
+              ) : (
+              "Load Compiler (7.5MB)"
+              )}
+            </Button>
+          </div>
+        )}
       </div>
+      {!typstDocument.isTypstLoaded && (
+        <FlowerCredits/>
+      )}
       <div className="fixed top-0 right-0 z-[var(--z-header-bar)]">
         <Button
           onClick={() => setEyeSaverMode((prev) => !prev)}
@@ -110,6 +118,15 @@ function ResumePreview() {
           {eyeSaverMode ? "Disable Eye Saver" : "Enable Eye Saver"}
         </Button>
       </div>
+    </div>
+  );
+}
+
+function FlowerCredits() {
+  return (
+    <div className="absolute bottom-0 p-3 text-xs right-0 border border-white rounded-lg flex flex-col items-end bg-black text-white">
+      <span>These Flowers are Created by Kristina Margaryan</span>
+      <span>from the Noun Project</span>
     </div>
   );
 }

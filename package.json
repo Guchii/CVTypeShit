@@ -67,6 +67,7 @@
     "tailwindcss": "^4.1.4",
     "tw-animate-css": "^1.2.5",
     "ufo": "^1.6.1",
+    "vite-plugin-svgr": "^4.3.0",
     "yaml": "^2.7.1",
     "zod": "^3.24.3",
     "zod-to-json-schema": "^3.24.5"
