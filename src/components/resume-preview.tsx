@@ -15,10 +15,9 @@ import {
   appLoadingAtom,
 } from "@/lib/atoms";
 import { cn } from "@/lib/utils";
-import { logger } from "@/lib/consola";
 import compilerURL from "@myriaddreamin/typst-ts-web-compiler/pkg/typst_ts_web_compiler_bg.wasm?url";
 import rendererURL from "@myriaddreamin/typst-ts-renderer/pkg/typst_ts_renderer_bg.wasm?url";
-import flowers from "@/../public/flowers.svg?raw";
+import flowers from "@/assets/flowers.svg?raw";
 
 const timeout = 4;
 
@@ -36,6 +35,7 @@ function ResumePreview() {
   const [pageCount, setPageCount] = useState<number>(1);
 
   const contentRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     (async () => {
       const ac = new AbortController();
@@ -59,12 +59,14 @@ function ResumePreview() {
   }, []);
 
   const updateContent = useCallback(async () => {
-    logger.debug("Content Updated Compiling to SVG", "resume-preview");
     const svg = await typstDocument.compileToSVG();
     setPageCount(countPages(svg));
-    if (contentRef.current) {
-      contentRef.current.innerHTML = svg;
-    }
+
+    setTimeout(() => {
+      if (contentRef.current) {
+        contentRef.current.innerHTML = svg;
+      }
+    }, 10);
   }, [typstDocument]);
 
   useEffect(() => {

@@ -66,7 +66,7 @@ export default function UserProfileSheet({
         }}
         onPointerDownOutside={(e) => {
           if (!_.isEmpty(formControl.current?._formState.dirtyFields)) {
-            toast.success("Anna you have unsaved changes");
+            toast.info("Anna you have unsaved changes");
             e.preventDefault();
           }
         }}

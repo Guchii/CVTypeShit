@@ -31,7 +31,23 @@ export default function Layout() {
 
   return (
     <TooltipProvider>
-      <Toaster />
+      <Toaster
+        style={
+          {
+            "--normal-bg": "var(--popover)",
+            "--normal-text": "var(--popover-foreground)",
+            "--normal-border": "var(--border)",
+          } as React.CSSProperties
+        }
+        icons={{
+          close: null,
+          error: null,
+          info: null,
+          loading: null,
+          success: null,
+          warning: null
+        }}
+      />
       <div
         className={cn(
           "flex h-screen overflow-hidden bg-sidebar transition-all ease-[cubic-bezier(0.85,0,0.15,1)]",

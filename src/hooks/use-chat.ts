@@ -55,6 +55,7 @@ export default function useChat({ tools }: { tools: ToolSet } = { tools: {} }) {
 
     setLastAIMessage((prev) => ({
       ...prev,
+      content: "loading",
       status: "loading",
     }));
 
@@ -69,7 +70,6 @@ export default function useChat({ tools }: { tools: ToolSet } = { tools: {} }) {
         toolResults.forEach((toolResult) =>
         {
           const toolCallId = _.get(toolResult, 'toolCallId');
-          console.log(toolResult, toolCallId)
 
           if (toolCallId) {
             toolsBus.complete(toolCallId)
