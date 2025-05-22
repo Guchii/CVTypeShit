@@ -45,7 +45,7 @@ export default function Layout() {
           </div>
           <ChatInterface />
         </div>
-        <div className="w-[650px] bg-sidebar relative p-6 grid place-items-center">
+        <div className="bg-sidebar relative p-6 grid place-items-center">
           <ResumePreview />
         </div>
         <UserProfileSheet
