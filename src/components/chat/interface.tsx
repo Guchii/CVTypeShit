@@ -108,7 +108,7 @@ export default function ChatInterface() {
                     <ToolCall
                       key={i}
                       toolName={call.toolName as "query" | "mutate"}
-                      completed={call.completed}
+                      toolCallId={call.toolCallId}
                       query={call.args.jqQuery}
                     />
                   );

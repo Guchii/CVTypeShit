@@ -1,38 +1,22 @@
-import { tool, ToolSet } from "ai";
-import { BaseTypstDocument } from "./base-typst";
-import { z } from "zod";
+import { logger } from "./consola";
 
-export class Tools {
-  constructor(private typstDocument: BaseTypstDocument) {}
-  private async getCurrentData() {
-    return await this.typstDocument.getFile("/template.yml");
+class ToolsBus {
+  private observers: Map<string, () => void> = new Map();
+
+  public subscribe(toolName: string, callBack: () => void) {
+    console.debug('subscribing for ', toolName)
+    this.observers.set(toolName, callBack);
   }
-  private updateCurrentData(newContent: string): void {
-    this.typstDocument.updateFile("/template.yml", newContent);
-  }
-  public getTools(): ToolSet {
-    return {
-      getCurrentData: tool({
-        description:
-          "Fetches the current resume data in YAML format, including all sections (personal info, work experience, education, etc.). Use this to understand the existing structure before making updates.",
-        parameters: z.object({}),
-        execute: async () => {
-          return { currentData: this.getCurrentData() };
-        },
-      }),
-      updateCurrentData: tool({
-        description:
-          "Overwrites the entire resume YAML with new content and triggers a live UI update. Provide the full YAML (not a diff) to ensure consistency. Use this after modifying any section.",
-        parameters: z.object({
-          newContent: z
-            .string()
-            .describe("The new yaml content to update the resume with"),
-        }),
-        execute: async ({ newContent }) => {
-          this.updateCurrentData(newContent);
-          return { success: true };
-        },
-      }),
-    };
+
+  public complete(toolName: string) {
+    console.debug('completed', toolName)
+    try {
+      this.observers.get(toolName)?.();
+      this.observers.delete(toolName);
+    } catch (e) {
+      logger.error(e);
+    }
   }
 }
+
+export const toolsBus = new ToolsBus();

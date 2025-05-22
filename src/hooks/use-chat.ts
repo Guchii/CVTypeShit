@@ -14,6 +14,8 @@ import {
   ToolSet,
 } from "ai";
 import SYSTEM_PROMPT from "@/lib/prompts/system-prompt";
+import { toolsBus } from "@/lib/tools";
+import _ from "lodash";
 
 export const messagesAtom = atomWithStorage<CoreMessage[]>("messages", [
   {
@@ -63,6 +65,18 @@ export default function useChat({ tools }: { tools: ToolSet } = { tools: {} }) {
       experimental_continueSteps: true,
       experimental_transform: smoothStream(),
       maxSteps: 10,
+      onStepFinish: ({ toolResults }) => {
+        toolResults.forEach((toolResult) =>
+        {
+          const toolCallId = _.get(toolResult, 'toolCallId');
+          console.log(toolResult, toolCallId)
+
+          if (toolCallId) {
+            toolsBus.complete(toolCallId)
+          }
+        }
+        );
+      },
       onFinish: (e) => {
         setLastAIMessage({
           content: "",
