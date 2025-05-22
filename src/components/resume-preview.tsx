@@ -108,10 +108,10 @@ function ResumePreview() {
       {!typstDocument.isTypstLoaded && (
         <FlowerCredits/>
       )}
-      <div className="fixed top-0 right-0 z-[var(--z-header-bar)]">
+      <div className="fixed top-4 right-6 z-[var(--z-header-bar)]">
         <Button
           onClick={() => setEyeSaverMode((prev) => !prev)}
-          variant="default"
+          variant="outline"
           size="sm"
         >
           <Eye className="h-4 w-4 mr-2" />

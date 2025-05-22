@@ -28,7 +28,7 @@ import {
 import { PromptSuggestion } from "../ui/prompt-suggestion";
 import { triggerImportResumeAtom } from "../sheets/user-profile";
 import ChatMessage from "./message";
-import Greeting from "../greeting";
+import { Greeting } from "../greeting";
 import useChat from "@/hooks/use-chat";
 import ToolCall from "./tool-call";
 import _ from "lodash";

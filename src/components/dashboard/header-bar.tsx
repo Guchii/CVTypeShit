@@ -1,7 +1,12 @@
 "use client";
 
-import { BrainCog, DatabaseZap, DownloadIcon, Folders, LucideRefreshCcw } from "lucide-react";
-import { resetMessagesAtom } from "@/hooks/use-chat";
+import {
+  BrainCog,
+  DatabaseZap,
+  DownloadIcon,
+  Folders,
+  LucideRefreshCcw,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Tooltip,
@@ -15,7 +20,8 @@ import {
   llmSheetOpenAtom,
   userSheetOpenAtom,
   typstLoadedAtom,
-  documentAtom
+  documentAtom,
+  appLoadingAtom,
 } from "@/lib/atoms";
 import {
   AlertDialog,
@@ -27,6 +33,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { BaseTypstDocument } from "@/lib/base-typst";
+import { toast } from "sonner";
 
 export const resetMessagesAlertAtom = atom(false);
 
@@ -38,7 +46,7 @@ export default function HeaderBar() {
   const setResetMessagesAlert = useSetAtom(resetMessagesAlertAtom);
   const typstLoaded = useAtomValue(typstLoadedAtom);
 
-   const handleExportPDF = useCallback(async () => {
+  const handleExportPDF = useCallback(async () => {
     const pdf = await typstDocument.compileToPdf();
     if (pdf) {
       const blob = new Blob([pdf], { type: "application/pdf" });
@@ -68,7 +76,7 @@ export default function HeaderBar() {
         </TooltipTrigger>
         <TooltipContent>Data</TooltipContent>
       </Tooltip>
-       <Tooltip>
+      <Tooltip>
         <TooltipTrigger asChild>
           <Button
             variant="outline"
@@ -123,11 +131,10 @@ export default function HeaderBar() {
   );
 }
 export const ResetAlertDialog = () => {
-  const resetMessages = useSetAtom(resetMessagesAtom);
-  const typstDocument = useAtomValue(documentAtom);
   const [resetMessagesAlert, setResetMessagesAlert] = useAtom(
     resetMessagesAlertAtom
   );
+  const setAppLoading = useSetAtom(appLoadingAtom);
 
   return (
     <AlertDialog open={resetMessagesAlert} onOpenChange={setResetMessagesAlert}>
@@ -141,10 +148,15 @@ export const ResetAlertDialog = () => {
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <AlertDialogAction onClick={async () => {
-            await typstDocument.fetchTemplateAndData();
-            resetMessages();
-          }}>
+          <AlertDialogAction
+            onClick={async () => {
+              setAppLoading(true)
+              localStorage.removeItem("messages");
+              await BaseTypstDocument.resetDocument();
+              toast.info("Reloading in 3 seconds");
+              setTimeout(() => location.reload(), 3000);
+            }}
+          >
             Continue
           </AlertDialogAction>
         </AlertDialogFooter>
