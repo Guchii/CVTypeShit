@@ -2,10 +2,10 @@ import type React from "react";
 
 import { useState, useRef, useEffect, useCallback } from "react";
 
-import { atom, useAtom, useAtomValue } from "jotai";
+import { useAtom, useAtomValue } from "jotai";
 import { llmHandlerAtom } from "@/lib/atoms";
 
-import { atomWithStorage, RESET } from "jotai/utils";
+import { atomWithStorage } from "jotai/utils";
 
 import {
   CoreMessage,
@@ -17,36 +17,32 @@ import SYSTEM_PROMPT from "@/lib/prompts/system-prompt";
 import { toolsBus } from "@/lib/tools";
 import _ from "lodash";
 
-export const messagesAtom = atomWithStorage<CoreMessage[]>("messages", [
+export const messagesAtom = atomWithStorage<(CoreMessage | string)[]>("messages", [
   {
     role: "system",
     content: SYSTEM_PROMPT(),
   },
 ]);
 
-export const resetMessagesAtom = atom(
-  (get) => get(messagesAtom),
-  (_, set) => {
-    set(messagesAtom, RESET);
-  }
-);
+export type TLastAIMessage = {
+    status: "loading" | "streaming" | "complete" | "error";
+    content: string;
+    tool_calls: (ToolCallPart & { completed?: true })[];
+  };
 
 export default function useChat({ tools }: { tools: ToolSet } = { tools: {} }) {
   const [messages, setMessages] = useAtom(messagesAtom);
   const [input, setInput] = useState("");
   const abortController = useRef<AbortController>(new AbortController());
 
-  const [lastAIMessage, setLastAIMessage] = useState<{
-    status: "loading" | "streaming" | "complete" | "error";
-    content: string;
-    tool_calls: (ToolCallPart & { completed?: true })[];
-  }>({
+  const [lastAIMessage, setLastAIMessage] = useState<TLastAIMessage>({
     status: "complete",
     content: "",
     tool_calls: [],
   });
   const llmHandler = useAtomValue(llmHandlerAtom);
-  const messageCount = messages.length;
+  const coreMessages = messages.filter((m) => typeof m === "object");
+  const messageCount = coreMessages.length;
 
   const handleGeneration = useCallback(async () => {
     if (abortController.current.signal.aborted) {
@@ -55,12 +51,11 @@ export default function useChat({ tools }: { tools: ToolSet } = { tools: {} }) {
 
     setLastAIMessage((prev) => ({
       ...prev,
-      content: "loading",
       status: "loading",
     }));
 
     const result = llmHandler.generateStream({
-      messages,
+      messages: coreMessages,
       tools: tools,
       abortSignal: abortController.current.signal,
       experimental_continueSteps: true,
@@ -138,7 +133,7 @@ export default function useChat({ tools }: { tools: ToolSet } = { tools: {} }) {
   }, [messageCount, llmHandler, tools]);
 
   useEffect(() => {
-    if (messageCount && messages[messageCount - 1].role === "user")
+    if (messageCount && coreMessages[messageCount - 1].role === "user")
       handleGeneration();
   }, [messageCount, handleGeneration]);
 

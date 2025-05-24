@@ -1,14 +1,15 @@
 import { $typst } from "@myriaddreamin/typst.ts/dist/esm/contrib/snippet.mjs";
-import { ToolSet } from "ai";
-import { z, ZodSchema } from "zod";
 import FS from "@isomorphic-git/lightning-fs";
 import { InitOptions } from "@myriaddreamin/typst.ts/dist/esm/options.init.mjs";
 import { logger } from "./consola";
 import { BuildFailedError } from "./errors";
-type TypstFile = {
-  path: string;
-  content: string;
-};
+import git from "isomorphic-git";
+import {Buffer} from "buffer";
+import { toast } from "sonner";
+import { store } from "@/main";
+import { messagesAtom } from "@/hooks/use-chat";
+
+self.Buffer = Buffer;
 
 export type CompilerInitOptions = {
   compiler: () => Promise<Partial<InitOptions>>;
@@ -36,16 +37,95 @@ const defaultCompilerOptions: CompilerInitOptions = {
 
 export const indexedDBStore = "resume-bandhuu";
 
-export class BaseTypstDocument {
+export class CallbackQueue extends Array<() => void> {
+  enqueue(callback: () => void) {
+    this.push(callback);
+  }
+
+  dequeue(callback?: () => void) {
+    if (callback === undefined) {
+      return this.shift();
+    }
+    const index = this.indexOf(callback);
+    if (index > -1) {
+      this.splice(index, 1);
+    }
+  }
+
+  resolve() {
+    while (this.length > 0) {
+      const callback = this.shift();
+      if (callback) {
+        try {
+          callback();
+        } catch (error) {
+          logger.error("Error executing callback:", error);
+        }
+      }
+    }
+  }
+  
+  runAll() {
+    this.forEach((callback) => {
+      try {
+        callback();
+      } catch (error) {
+        logger.error("Error executing callback:", error);
+      }
+    });
+  }
+}
+
+export class State {
+  
+  /**
+   * State to indicate if the document is ready for loading the compiler and renderer.
+   * This is used to ensure all neccessary files are in FS before loading the compiler.
+   */
+  private _isReadyToLoad: boolean = false;
+  public afterIsReadyToLoad = new CallbackQueue();
+
+  get isReadyToLoad(): boolean {
+    return this._isReadyToLoad;
+  }
+
+  protected set isReadyToLoad(value: boolean) {
+    this._isReadyToLoad = value;
+    if (value){
+      this.afterIsReadyToLoad.resolve();
+    }
+  }
+
+  /**
+   * State to indicate if the document is ready for compilation.
+   * This is used to ensure typst and fonts are loaded before compilation.
+   */
+  private _isReadyToCompile: boolean = false;
+  public afterIsReadyToCompile = new CallbackQueue();
+
+  get isReadyToCompile(): boolean {
+    return this._isReadyToCompile;
+  }
+
+  protected set isReadyToCompile(value: boolean) {
+    this._isReadyToCompile = value;
+    if (value) {
+      this.afterIsReadyToCompile.resolve();
+    }
+  }
+}
+
+export class BaseTypstDocument extends State {
   public typst: typeof $typst;
-  private observers: ((content: string) => void)[] = [];
-  private mainContent: string = "";
+  protected observers = new CallbackQueue();
+  protected mainContent: string = "";
   public fs: FS;
-  public isTypstLoaded: boolean = false;
+  public beforeLoadQueue = new CallbackQueue();
 
-  public afterLoadQueue: (() => void)[] = [];
-
-  public beforeLoadQueue: (() => void)[] = [];
+  /**
+   * List of files whose presence is required for the typst compiler to work.
+   */
+  private importantFiles: string[] = ["main.typ", "template.yml"];
 
   /**
    *
@@ -53,77 +133,50 @@ export class BaseTypstDocument {
    * @param files additional shadow files to be mapped in the typst compiler
    */
   constructor(
-    mainContent: string,
-    files: TypstFile[],
     private compilerInitOptions: CompilerInitOptions = defaultCompilerOptions
   ) {
-    logger.start(BaseTypstDocument.name);
+    super();
     this.fs = new FS(indexedDBStore);
-    console.log(this);
     this.typst = $typst;
-    this.afterLoadQueue.push(() => {
-      this.fs.readFile("/main.typ", { encoding: "utf8" }, (e, data) => {
-        logger.ready("/main.typ");
-        if (e) {
-          this.mainContent = mainContent;
-          this.fs.writeFile(
-            "/main.typ",
-            mainContent,
-            { encoding: "utf8", mode: 0o777 },
-            () => {}
-          );
-        }
-        if (data) {
-          this.mainContent = data;
-        }
-      });
-
-      // Map other files
-      files.forEach((file) => {
-        this.fs.readFile(file.path, { encoding: "utf8" }, (e, data) => {
-          logger.ready(file.path);
-          if (e) {
-            logger.log(`Error reading file ${file.path}: ${e}`);
-            this.fs.writeFile(
-              file.path,
-              file.content,
-              { encoding: "utf8", mode: 0o777 },
-              async () => {
-                await this.typst.mapShadow(
-                  file.path,
-                  new TextEncoder().encode(file.content)
-                );
-              }
-            );
-          }
-          if (data) {
-            this.fs.writeFile(
-              file.path,
-              data,
-              { encoding: "utf8", mode: 0o777 },
-              async () => {
-                logger.debug(`${file.path} written to storage`);
-                logger.start(`shadow mapping ${file.path}`);
-                await this.typst.mapShadow(
-                  file.path,
-                  new TextEncoder().encode(data)
-                );
-              }
-            );
-          }
-        });
-      });
-    });
   }
 
+  protected async isSetupValid(): Promise<boolean> {
+    const files = await this.fs.promises.readdir("/")
+    if (this.importantFiles.some(file => !files.includes(file))) {
+      logger.error("Invalid setup: main.typ or template.yml not found");
+      return false;
+    }
+    return true;
+  }
+
+  protected async mapShadowFiles() {
+    const encoder = new TextEncoder();
+
+    await this.typst.resetShadow();
+
+    for (const file of this.importantFiles) {
+      const filePath = `/${file}`;
+      const fileContent = await this.getFile(filePath);
+      this.typst.mapShadow(filePath, encoder.encode(fileContent));
+    }
+  }
+  
+
   public async loadTypst() {
+    if (!this.isReadyToLoad) {
+      this.afterIsReadyToLoad.enqueue(() => this.loadTypst());
+      return;
+    }
+
     this.beforeLoadQueue.forEach((fn) => fn());
+
     const compilerInitOptions = await this.compilerInitOptions.compiler();
     const rendererInitOptions = await this.compilerInitOptions.renderer();
+
     $typst.setCompilerInitOptions(compilerInitOptions);
     $typst.setRendererInitOptions(rendererInitOptions);
-    this.isTypstLoaded = true;
-    this.afterLoadQueue.forEach((fn) => fn());
+
+    this.isReadyToCompile = true;
   }
 
   getContent(): string {
@@ -137,31 +190,25 @@ export class BaseTypstDocument {
     return fileContent;
   }
 
+  protected async preCompileStep() {
+    await this.mapShadowFiles();
+  }
+
   async compileToPdf(): Promise<Uint8Array | undefined> {
+    await this.preCompileStep();
     return await this.typst.pdf({ mainContent: this.mainContent });
   }
 
   async compileToSVG(): Promise<string> {
-    logger.start(this.compileToSVG.name);
+    await this.preCompileStep();
     return await this.typst.svg({ mainContent: this.mainContent });
   }
 
-  async updateDocument(newDocument: string) {
-    await this.fs.promises.writeFile("/main.typ", newDocument, {
-      encoding: "utf8",
-      mode: 0o777,
-    });
-    this.mainContent = newDocument;
-    this.observers.forEach((observer) => observer(this.mainContent));
-  }
-
-  private async updateFileContent(path: string, newContent: string) {
+  protected async updateFileContent(path: string, newContent: string) {
     await this.fs.promises.writeFile(path, newContent, {
       encoding: "utf8",
       mode: 0o777,
     });
-    await this.typst.unmapShadow(path);
-    await this.typst.mapShadow(path, new TextEncoder().encode(newContent));
   }
 
   async updateFile(path: string, newContent: string) {
@@ -170,30 +217,70 @@ export class BaseTypstDocument {
     });
     await this.updateFileContent(path, newContent);
     try {
-      logger.start("Build Check");
       await this.compileToSVG();
-      this.observers.forEach((observer) => observer(this.mainContent));
+      this.observers.runAll();
     } catch (e) {
       await this.updateFileContent(path, oldContent as string);
       throw new BuildFailedError(path, e);
     }
   }
 
-  subscribeToChanges(observer: (content: string) => void): void {
-    this.observers.push(observer);
+  subscribeToChanges(observer: () => void): void {
+    this.observers.enqueue(observer);
   }
 
   unsubscribeFromChanges(observer: () => void): void {
-    this.observers = this.observers.filter((obs) => obs !== observer);
+    this.observers.dequeue(observer);
+  }
+  async createCheckpoint() {
+    const status = await git.status({
+      fs: this.fs,
+      dir: "/",
+      filepath: "template.yml",
+    });
+    if (status === "unmodified") {
+      toast.error("No changes to commit", {
+        id: "no-changes",
+      });
+      return;
+    }
+    await git.add({
+      fs: this.fs,
+      dir: "/",
+      filepath: ["main.typ", "template.yml"],
+    });
+    const sha = await git.commit({
+      fs: this.fs,
+      dir: "/",
+      message: "Checkpoint",
+      author: {
+        name: "Resume Bandhuu",
+        email: "resume@bandhuu.com",
+      }
+    });
+    toast.success("Checkpoint created", {
+      description: sha
+    });
+    store.set(messagesAtom, prev => [...prev, sha]);
   }
 
-  getTools(): ToolSet {
-    return {};
+  async getCheckpoints() {
+    const commits = await git.log({
+      fs: this.fs,
+      dir: "/",
+      depth: 100,
+    });
+    return commits;
   }
 
-  getDataSchema(): ZodSchema {
-    return z.object({});
+  protected async initRepository(){
+    await git.init({
+      fs: this.fs,
+      dir: "/",
+    });
   }
+
+ 
 
   static async resetDocument() {
     await new Promise((resolve, reject) => {

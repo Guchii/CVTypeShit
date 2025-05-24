@@ -260,13 +260,13 @@ const createOptions: (url: string) => Promise<Partial<InitOptions>> = async (
 
 // Active Document State
 export const documentAtom = atom(() =>
-    new TypstDocument(undefined, undefined, undefined, {
+    new TypstDocument("template-1",{
       compiler: () => createOptions(compilerURL),
       renderer: () => createOptions(rendererURL),
     })
 );
 
-export const typstLoadedAtom = atom(false);
+export const isReadyToCompileAtom = atom(false);
 
 // Sheets State
 export const userSheetOpenAtom = atom(false);

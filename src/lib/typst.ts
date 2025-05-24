@@ -1,6 +1,7 @@
 import { tool, ToolSet } from "ai";
 import { parse, stringify } from "yaml";
 import { z, ZodSchema } from "zod";
+import git from "isomorphic-git";
 
 import { ResumeData, ResumeDataSchema } from "./types/resume-data";
 import { BaseTypstDocument, CompilerInitOptions } from "./base-typst";
@@ -9,75 +10,79 @@ import { logger } from "./consola";
 import _ from "lodash";
 import { BuildFailedError } from "./errors";
 import { toast } from "sonner";
+import { store } from "@/main";
+import { messagesAtom } from "@/hooks/use-chat";
 
 export class TypstDocument extends BaseTypstDocument {
   private _data: ResumeData;
   constructor(
-    template = "",
-    yaml = "",
     private templateName = "template-1",
     compilerInitOptions?: CompilerInitOptions
   ) {
-    super(
-      template,
-      [
-        {
-          content: yaml,
-          path: "/template.yml",
-        },
-      ],
-      compilerInitOptions
-    );
-    this._data = parse(yaml);
+    super(compilerInitOptions);
+    this._data = {personal: {name: "Chutkule Srivastava"}};
+    console.log(this);
   }
+
+
+  /**
+   * Initializes the document, this is called when the document is created.
+   * It is used to set up the typst compiler and renderer.
+   */
+  public async init() {
+    logger.start(this.init.name, this.templateName);
+
+    await this.initRepository();
+
+    const isValid = await this.isSetupValid();
+    if (isValid) {
+      const data = await this.getFile('/template.yml');
+      const mainContent = await this.getFile('/main.typ');
+      this._data = parse(data)
+      this.mainContent = mainContent;
+    } else {
+      await this.fetchTemplateAndData();
+    }
+
+    this.isReadyToLoad = true;
+  }
+
+   /**
+    * Doesn't actually destroy the document, but resets the state of the document.
+    * doesn't remove the files from the file system.
+    */
+  public async destroy() {
+    this.isReadyToCompile = false;
+    this.isReadyToLoad = false;
+    this.mainContent = "";
+    this._data = {personal: {name: "Chutkule Srivastava"}};
+  }
+
 
   async fetchTemplateAndData() {
-    if (!this.isTypstLoaded) {
-      logger.debug(
-        "Typst not loaded adding " +
-          this.fetchTemplateAndData.name +
-          " to after load queue"
-      );
-      return this.afterLoadQueue.push(() => this.fetchTemplateAndData());
+    logger.start(this.fetchTemplateAndData.name, this.templateName);
+
+    const templateResponse = await fetch(`/templates/${this.templateName}/main.typ`);
+    let templateText = await templateResponse.text();
+
+    if (templateText) {
+      const regex = /(#let cvdata = yaml\(")\.\//g;
+      templateText = templateText.replace(regex, "$1/");
     }
 
-    try {
-      const template = await this.fs.promises.readFile("/main.typ", {
-        encoding: "utf8",
-      });
-      const data = await this.fs.promises.readFile("/template.yml", {
-        encoding: "utf8",
-      });
-      if (data) {
-        this.replaceData(data);
-      }
-      if (!data || !template) {
-        throw new Error("No content found in /main.typ");
-      }
-    } catch {
-      const templateResponse = await fetch(
-        `/templates/${this.templateName}/main.typ`
-      );
+    const dataResponse = await fetch(`/templates/${this.templateName}/template.yml`);
+    const dataText = await dataResponse.text();
 
-      let templateText = await templateResponse.text();
-      if (templateText) {
-        const regex = /(#let cvdata = yaml\(")\.\//g;
-        templateText = templateText.replace(regex, "$1/");
-      }
+    // Writing to File System
+    await this.updateFileContent("/main.typ", templateText);
+    await this.updateFileContent("/template.yml", dataText);
 
-      const dataResponse = await fetch(
-        `/templates/${this.templateName}/template.yml`
-      );
-      const dataText = await dataResponse.text();
+    console.log(await this.getFile("/main.typ"));
+    console.log(await this.getFile("/template.yml"));
 
-      this.updateDocument(templateText);
-      this.replaceData(dataText);
-    }
-  }
-
-  async cleanup() {
-    await this.updateDocument("");
-    await this.updateFile("/template.yml", "");
+    // Updating in memory document data
+    this.mainContent = templateText;
+    this._data = parse(dataText);
   }
 
   get data() {
@@ -97,7 +102,7 @@ export class TypstDocument extends BaseTypstDocument {
     }
   }
 
-  async setdata(data: ResumeData) {
+  async setData(data: ResumeData) {
     const oldData = _.cloneDeep(this._data);
     this._data = data;
     try {
@@ -110,9 +115,9 @@ export class TypstDocument extends BaseTypstDocument {
     }
   }
 
-  replaceData(yaml: string) {
+  async replaceData(yaml: string) {
     this._data = parse(yaml);
-    this.updateFile("/template.yml", yaml);
+    await this.updateFile("/template.yml", yaml);
   }
 
   getTools() {
@@ -137,7 +142,7 @@ export class TypstDocument extends BaseTypstDocument {
               jqQuery
             );
 
-            await this.setdata(JSON.parse(jsonString));
+            await this.setData(JSON.parse(jsonString));
             toast.success("Resume Updated");
             return "Success";
           } catch (e) {
@@ -171,6 +176,25 @@ export class TypstDocument extends BaseTypstDocument {
       }),
     };
     return tools;
+  }
+ async resetToCheckpoint(sha: string) {
+    await git.checkout({
+      fs: this.fs,
+      dir: "/",
+      ref: sha,
+      force: true
+    });
+    store.set(messagesAtom, prev => {
+      const index = prev.indexOf(sha);
+      if (index > -1) {
+        return prev.slice(0, index);
+      }
+      return prev;
+    });
+    // Sync in memory data object as well for form usage, this won't be done from here
+    // But for POC purposes, we will adjust with just re-rendering the resume preview
+    await this.replaceData(await this.getFile('/template.yml'))
+    this.observers.runAll();
   }
 
   private handleError(e: unknown, displayToast = true) {
