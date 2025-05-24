@@ -1,5 +1,5 @@
-import { Fragment, useMemo } from "react";
-import { ArrowUp, AtSign, RefreshCcw, Square, Undo } from "lucide-react";
+import { useMemo } from "react";
+import { ArrowUp, AtSign, Square, Undo } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   PromptInput,
@@ -16,22 +16,14 @@ import {
   isReadyToCompileAtom,
 } from "@/lib/atoms";
 import { ChatMessageList } from "../ui/chat/chat-message-list";
-import Markdown from "react-markdown";
-import remarkGfm from "remark-gfm";
-
-import {
-  ChatBubble,
-  ChatBubbleAction,
-  ChatBubbleMessage,
-} from "../ui/chat/chat-bubble";
 
 import { PromptSuggestion } from "../ui/prompt-suggestion";
 import { triggerImportResumeAtom } from "../sheets/user-profile";
 import ChatMessage from "./message";
 import { Greeting } from "../greeting";
 import useChat from "@/hooks/use-chat";
-import ToolCall from "./tool-call";
 import _ from "lodash";
+import LastAIMessage from "./last-ai-message";
 
 export default function ChatInterface() {
   const typstDocument = useAtomValue(documentAtom);
@@ -81,52 +73,7 @@ export default function ChatInterface() {
               <ChatMessage key={i} {...message} />
             )
           )}
-          {lastAIMessage.status !== "complete" && (
-            <Fragment>
-              {lastAIMessage.content && (
-                <ChatBubble variant="received">
-                  <ChatBubbleMessage variant="received">
-                    {lastAIMessage.status === "streaming" && (
-                      <Markdown remarkPlugins={[remarkGfm]}>
-                        {lastAIMessage.content}
-                      </Markdown>
-                    )}
-                    {lastAIMessage.status === "loading" && (
-                      <img
-                        src="/loading.gif"
-                        width={80}
-                        height={80}
-                        alt="epic-loader"
-                      />
-                    )}
-                    {lastAIMessage.status === "error" && lastAIMessage.content}
-                  </ChatBubbleMessage>
-                  {lastAIMessage.status === "error" && (
-                    <ChatBubbleAction
-                      onClick={() => handleGeneration()}
-                      icon={<RefreshCcw className="size-3.5" />}
-                    />
-                  )}
-                </ChatBubble>
-              )}
-              {lastAIMessage.tool_calls.map((call, i) => {
-                if (
-                  _.isObject(call.args) &&
-                  "jqQuery" in call.args &&
-                  typeof call.args.jqQuery === "string"
-                )
-                  return (
-                    <ToolCall
-                      key={i}
-                      toolName={call.toolName as "query" | "mutate"}
-                      toolCallId={call.toolCallId}
-                      query={call.args.jqQuery}
-                    />
-                  );
-                return null;
-              })}
-            </Fragment>
-          )}
+          <LastAIMessage {...{ handleGeneration, lastAIMessage }} />
         </ChatMessageList>
       </div>
       <div className="p-4 space-y-2">
