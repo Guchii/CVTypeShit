@@ -127,12 +127,12 @@ export class TypstDocument extends BaseTypstDocument {
           jqQuery: z
             .string()
             .describe(
-              "jq update query to be run, result should return the whole updated json"
+              "jq update filter to be run, result should return the whole updated json"
             ),
         }),
         description:
-          "Update the Resume JSON with the help of a jq query string,\
-          query will be run against the json and your query should return the whole updated json",
+          "Update the Resume JSON with the help of a jq filter string,\
+          filter will be run against the json and your filter should return the whole updated json",
         execute: async ({ jqQuery }) => {
           const jq = await loadJQ();
           logger.start("Started Updating JSON with query", jqQuery);
@@ -153,11 +153,11 @@ export class TypstDocument extends BaseTypstDocument {
       }),
       query: tool({
         parameters: z.object({
-          jqQuery: z.string().describe("jq query to be run"),
+          jqQuery: z.string().describe("jq filter to be run"),
         }),
         description:
-          "Query the Resume JSON with the help of a jq query string,\
-          query will be run against the json and result will be returned to you",
+          "Query the Resume JSON with the help of a jq filter,\
+          filter will be run against the json and result will be returned to you",
         execute: async ({ jqQuery }) => {
           const jq = await loadJQ();
           try {
