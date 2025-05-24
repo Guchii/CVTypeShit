@@ -13,7 +13,7 @@ import {
   activeLLMConfigAtom,
   documentAtom,
   llmSheetOpenAtom,
-  typstLoadedAtom,
+  isReadyToCompileAtom,
 } from "@/lib/atoms";
 import { ChatMessageList } from "../ui/chat/chat-message-list";
 import Markdown from "react-markdown";
@@ -35,7 +35,7 @@ import _ from "lodash";
 
 export default function ChatInterface() {
   const typstDocument = useAtomValue(documentAtom);
-  const typstLoaded = useAtomValue(typstLoadedAtom);
+  const typstLoaded = useAtomValue(isReadyToCompileAtom);
 
   const tools = useMemo(() => {
     return typstDocument.getTools();

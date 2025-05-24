@@ -62,7 +62,7 @@ export default function Layout() {
           <ChatInterface />
         </div>
         <div className="bg-sidebar relative p-6 grid place-items-center">
-          <ResumePreview />
+            <ResumePreview />
         </div>
         <UserProfileSheet
           open={userSheetOpen}

@@ -19,7 +19,7 @@ import {
   filesSheetOpenAtom,
   llmSheetOpenAtom,
   userSheetOpenAtom,
-  typstLoadedAtom,
+  isReadyToCompileAtom,
   documentAtom,
   appLoadingAtom,
 } from "@/lib/atoms";
@@ -44,7 +44,7 @@ export default function HeaderBar() {
   const setLlmSheetOpen = useSetAtom(llmSheetOpenAtom);
   const setFilesSheetOpen = useSetAtom(filesSheetOpenAtom);
   const setResetMessagesAlert = useSetAtom(resetMessagesAlertAtom);
-  const typstLoaded = useAtomValue(typstLoadedAtom);
+  const typstLoaded = useAtomValue(isReadyToCompileAtom);
 
   const handleExportPDF = useCallback(async () => {
     const pdf = await typstDocument.compileToPdf();

@@ -1,5 +1,6 @@
 import React, {
   CSSProperties,
+  Fragment,
   useCallback,
   useEffect,
   useRef,
@@ -11,7 +12,7 @@ import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import {
   documentAtom,
   eyeSaverModeAtom,
-  typstLoadedAtom,
+  isReadyToCompileAtom,
   appLoadingAtom,
 } from "@/lib/atoms";
 import { cn } from "@/lib/utils";
@@ -27,38 +28,36 @@ function countPages(svgString: string) {
   const document = parser.parseFromString(svgString, "image/svg+xml");
   return document.querySelectorAll(".typst-page").length;
 }
+async function checkForCache() {
+  const ac = new AbortController();
+  const promise = fetch(compilerURL, { signal: ac.signal })
+    .then(() => true)
+    .catch(() => false);
+
+  const ac2 = new AbortController();
+  const promise2 = fetch(rendererURL, { signal: ac2.signal })
+    .then(() => true)
+    .catch(() => false);
+
+  setTimeout(() => ac.abort(), timeout);
+  setTimeout(() => ac2.abort(), timeout);
+  const [cachedCompiler, cachedRenderer] = await Promise.all([
+    promise,
+    promise2,
+  ]);
+  return cachedCompiler && cachedRenderer;
+}
 
 function ResumePreview() {
   const typstDocument = useAtomValue(documentAtom);
-  const setLoaded = useSetAtom(typstLoadedAtom);
+  const setLoaded = useSetAtom(isReadyToCompileAtom);
   const [appLoading, setAppLoading] = useAtom(appLoadingAtom);
+  const [isReadyToLoad, setIsReadyToLoad] = useState(false);
   const [pageCount, setPageCount] = useState<number>(1);
 
   const contentRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    (async () => {
-      const ac = new AbortController();
-      const promise = fetch(compilerURL, { signal: ac.signal })
-        .then(() => true)
-        .catch(() => false);
-
-      const ac2 = new AbortController();
-      const promise2 = fetch(rendererURL, { signal: ac2.signal })
-        .then(() => true)
-        .catch(() => false);
-
-      setTimeout(() => ac.abort(), timeout);
-      setTimeout(() => ac2.abort(), timeout);
-      return Promise.all([promise, promise2]);
-    })().then((cached) => {
-      if (cached.every((val) => val)) {
-        typstDocument.loadTypst();
-      }
-    });
-  }, []);
-
-  const updateContent = useCallback(async () => {
+  const renderResume = useCallback(async () => {
     const svg = await typstDocument.compileToSVG();
     setPageCount(countPages(svg));
 
@@ -66,32 +65,68 @@ function ResumePreview() {
       if (contentRef.current) {
         contentRef.current.innerHTML = svg;
       }
-    }, 10);
+    }, 0);
   }, [typstDocument]);
 
   useEffect(() => {
-    if (contentRef.current) {
-      contentRef.current.innerHTML = flowers;
+    typstDocument.init();
+    return () => {
+      typstDocument.destroy();
     }
-    typstDocument.subscribeToChanges(updateContent);
-  }, [typstDocument, updateContent]);
+  }, [typstDocument]);
 
   useEffect(() => {
-    typstDocument.fetchTemplateAndData();
-  }, [typstDocument, updateContent]);
+    checkForCache().then((cached) => {
+      if (cached) {
+        typstDocument.loadTypst();
+      }
+    });
+  }, [typstDocument]);
 
   useEffect(() => {
-    if (!typstDocument.isTypstLoaded) {
-      typstDocument.beforeLoadQueue.push(() => setAppLoading(true));
-      typstDocument.afterLoadQueue.push(() => {
-        setLoaded(true);
-        setAppLoading(false);
-      });
+    const afterIsReadyToCompile = () => {
+      setAppLoading(false);
+      setLoaded(true);
+      renderResume();
+    };
+
+    const beforeLoad = () => {
+      setAppLoading(true);
+    };
+
+    const afterIsReadyToLoad = () => {
+      setIsReadyToLoad(true);
     }
-  }, [typstDocument, setLoaded]);
+
+    typstDocument.beforeLoadQueue.enqueue(beforeLoad);
+    typstDocument.afterIsReadyToCompile.enqueue(afterIsReadyToCompile);
+    typstDocument.afterIsReadyToLoad.enqueue(afterIsReadyToLoad);
+
+
+    return () => {
+      typstDocument.beforeLoadQueue.dequeue(beforeLoad);
+      typstDocument.afterIsReadyToCompile.dequeue(afterIsReadyToCompile);
+    };
+  }, [typstDocument, setAppLoading, setLoaded, renderResume]);
+
+
+  useEffect(() => {
+    const container = contentRef.current;
+    if (container) {
+      container.innerHTML = flowers;
+    }
+
+    typstDocument.subscribeToChanges(renderResume);
+    return () => {
+      if (container) {
+        container.innerHTML = "<span>Cleanup</span>";
+      }
+      typstDocument.unsubscribeFromChanges(renderResume);
+    };
+  }, [typstDocument, renderResume]);
 
   const [eyeSaverMode, setEyeSaverMode] = useAtom(eyeSaverModeAtom);
-  console.log({ pageCount });
+
   return (
     <div className="h-[90%] w-auto bg-transparent aspect-[1224/1584] relative overflow-auto my-4 max-w-3xl mx-auto">
       <div
@@ -105,29 +140,33 @@ function ResumePreview() {
           "w-full [&>svg]:w-full [&>svg]:h-[var(--svg-height-relative-to-container)] [&>svg#flower]:scale-[2.2] bg-white border border-white h-full overflow-auto rounded-lg",
           eyeSaverMode &&
             "bg-transparent [&>svg_use]:fill-white [&>svg_path]:stroke-white",
-          !typstDocument.isTypstLoaded && "overflow-hidden"
+          !typstDocument.isReadyToCompile && "overflow-hidden"
         )}
       />
-      <div
-        className={cn(
-          "left-1/2 top-1/2 absolute -translate-x-[50%] -translate-y-[50%]",
-          "prose prose-headings:text-background text-background p-32",
-          eyeSaverMode && "text-foreground prose-headings:text-foreground"
-        )}
-      >
-        {!typstDocument.isTypstLoaded && (
-          <div className="flex flex-col gap-2 items-center h-full w-full justify-center">
-            <Button
-              disabled={appLoading}
-              size={"lg"}
-              onClick={() => typstDocument.loadTypst()}
-            >
-              {appLoading ? "Loading Compiler" : "Load Compiler (7.5MB)"}
-            </Button>
+      {!typstDocument.isReadyToCompile && (
+        <Fragment>
+          <div
+            className={cn(
+              "left-1/2 top-1/2 absolute -translate-x-[50%] -translate-y-[50%]",
+              "prose prose-headings:text-background text-background p-32",
+              eyeSaverMode && "text-foreground prose-headings:text-foreground"
+            )}
+          >
+            {isReadyToLoad && (
+              <div className="flex flex-col gap-2 items-center h-full w-full justify-center">
+                <Button
+                  disabled={appLoading}
+                  size={"lg"}
+                  onClick={() => typstDocument.loadTypst()}
+                >
+                  {appLoading ? "Loading Compiler" : "Load Compiler (7.5MB)"}
+                </Button>
+              </div>
+            )}
           </div>
-        )}
-      </div>
-      {!typstDocument.isTypstLoaded && <FlowerCredits />}
+          <FlowerCredits />
+        </Fragment>
+      )}
       <div className="fixed top-4 flex gap-2 items-center right-6 z-[var(--z-header-bar)]">
         <Button
           onClick={() => setEyeSaverMode((prev) => !prev)}
@@ -140,7 +179,7 @@ function ResumePreview() {
         <Button
           variant="outline"
           size="sm"
-          onClick={() => typstDocument.createCheckpoint().then(() => typstDocument.getCheckpoints())}
+          onClick={() => typstDocument.createCheckpoint()}
         >
           <MapPin className="h-4 w-4" />
           Create Checkpoint
