@@ -40,7 +40,6 @@ export class TypstDocument extends BaseTypstDocument {
       );
       return this.afterLoadQueue.push(() => this.fetchTemplateAndData());
     }
-
     try {
       const template = await this.fs.promises.readFile("/main.typ", {
         encoding: "utf8",

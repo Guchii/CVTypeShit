@@ -1,5 +1,5 @@
 import { Fragment, useMemo } from "react";
-import { ArrowUp, AtSign, RefreshCcw, Square } from "lucide-react";
+import { ArrowUp, AtSign, RefreshCcw, Square, Undo } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   PromptInput,
@@ -13,7 +13,7 @@ import {
   activeLLMConfigAtom,
   documentAtom,
   llmSheetOpenAtom,
-  typstLoadedAtom
+  typstLoadedAtom,
 } from "@/lib/atoms";
 import { ChatMessageList } from "../ui/chat/chat-message-list";
 import Markdown from "react-markdown";
@@ -67,9 +67,20 @@ export default function ChatInterface() {
       <div className="flex-1 overflow-y-auto p-2">
         <ChatMessageList smooth>
           {messages.length - 1 === 0 && <Greeting />}
-          {messages.map((message, i) => (
+          {messages.map((message, i) =>
+            _.isString(message) ? (
+              <Button
+                size={"lg"}
+                variant={"outline"}
+                onClick={() => typstDocument.resetToCheckpoint(message)}
+                className="self-end"
+              >
+                <Undo /> Checkpoint {message.substring(0, 5)}
+              </Button>
+            ) : (
               <ChatMessage key={i} {...message} />
-          ))}
+            )
+          )}
           {lastAIMessage.status !== "complete" && (
             <Fragment>
               {lastAIMessage.content && (

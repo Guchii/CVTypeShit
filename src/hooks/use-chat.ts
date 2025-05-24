@@ -17,7 +17,7 @@ import SYSTEM_PROMPT from "@/lib/prompts/system-prompt";
 import { toolsBus } from "@/lib/tools";
 import _ from "lodash";
 
-export const messagesAtom = atomWithStorage<CoreMessage[]>("messages", [
+export const messagesAtom = atomWithStorage<(CoreMessage | string)[]>("messages", [
   {
     role: "system",
     content: SYSTEM_PROMPT(),
@@ -46,7 +46,7 @@ export default function useChat({ tools }: { tools: ToolSet } = { tools: {} }) {
     tool_calls: [],
   });
   const llmHandler = useAtomValue(llmHandlerAtom);
-  const messageCount = messages.length;
+  const messageCount = messages.filter((m) => typeof m === "object").length;
 
   const handleGeneration = useCallback(async () => {
     if (abortController.current.signal.aborted) {
@@ -60,7 +60,7 @@ export default function useChat({ tools }: { tools: ToolSet } = { tools: {} }) {
     }));
 
     const result = llmHandler.generateStream({
-      messages,
+      messages: messages.filter<CoreMessage>(m => typeof m === "object"),
       tools: tools,
       abortSignal: abortController.current.signal,
       experimental_continueSteps: true,
@@ -138,7 +138,7 @@ export default function useChat({ tools }: { tools: ToolSet } = { tools: {} }) {
   }, [messageCount, llmHandler, tools]);
 
   useEffect(() => {
-    if (messageCount && messages[messageCount - 1].role === "user")
+    if (messageCount && messages.filter((m) => typeof m === "object")[messageCount - 1].role === "user")
       handleGeneration();
   }, [messageCount, handleGeneration]);
 

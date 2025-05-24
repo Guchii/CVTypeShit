@@ -5,6 +5,14 @@ import FS from "@isomorphic-git/lightning-fs";
 import { InitOptions } from "@myriaddreamin/typst.ts/dist/esm/options.init.mjs";
 import { logger } from "./consola";
 import { BuildFailedError } from "./errors";
+import git from "isomorphic-git";
+import {Buffer} from "buffer";
+import { toast } from "sonner";
+import { store } from "@/main";
+import { messagesAtom } from "@/hooks/use-chat";
+
+self.Buffer = Buffer;
+
 type TypstFile = {
   path: string;
   content: string;
@@ -38,7 +46,7 @@ export const indexedDBStore = "resume-bandhuu";
 
 export class BaseTypstDocument {
   public typst: typeof $typst;
-  private observers: ((content: string) => void)[] = [];
+  protected observers: ((content: string) => void)[] = [];
   private mainContent: string = "";
   public fs: FS;
   public isTypstLoaded: boolean = false;
@@ -58,9 +66,13 @@ export class BaseTypstDocument {
     private compilerInitOptions: CompilerInitOptions = defaultCompilerOptions
   ) {
     logger.start(BaseTypstDocument.name);
+
     this.fs = new FS(indexedDBStore);
-    console.log(this);
+
+    this.initRepository();
+
     this.typst = $typst;
+
     this.afterLoadQueue.push(() => {
       this.fs.readFile("/main.typ", { encoding: "utf8" }, (e, data) => {
         logger.ready("/main.typ");
@@ -142,6 +154,7 @@ export class BaseTypstDocument {
   }
 
   async compileToSVG(): Promise<string> {
+
     logger.start(this.compileToSVG.name);
     return await this.typst.svg({ mainContent: this.mainContent });
   }
@@ -193,6 +206,81 @@ export class BaseTypstDocument {
 
   getDataSchema(): ZodSchema {
     return z.object({});
+  }
+
+  async createCheckpoint() {
+    const status = await git.status({
+      fs: this.fs,
+      dir: "/",
+      filepath: "template.yml",
+    });
+    if (status === "unmodified") {
+      toast.error("No changes to commit", {
+        id: "no-changes",
+      });
+      return;
+    }
+    await git.add({
+      fs: this.fs,
+      dir: "/",
+      filepath: ["main.typ", "template.yml"],
+    });
+    const sha = await git.commit({
+      fs: this.fs,
+      dir: "/",
+      message: "Checkpoint",
+      author: {
+        name: "Resume Bandhuu",
+        email: "resume@bandhuu.com",
+      }
+    });
+    toast.success("Checkpoint created", {
+      description: sha
+    });
+    store.set(messagesAtom, prev => [...prev, sha]);
+  }
+
+  async getCheckpoints() {
+    const commits = await git.log({
+      fs: this.fs,
+      dir: "/",
+      depth: 100,
+    });
+    return commits;
+  }
+
+  private async initRepository(){
+    await git.init({
+      fs: this.fs,
+      dir: "/",
+    });
+  }
+
+  async resetToCheckpoint(sha: string) {
+    await git.checkout({
+      fs: this.fs,
+      dir: "/",
+      ref: sha,
+      force: true
+    });
+    store.set(messagesAtom, prev => {
+      const index = prev.indexOf(sha);
+      if (index > -1) {
+        return prev.slice(0, index);
+      }
+      return prev;
+    });
+    await this.typst.unmapShadow("/template.yml");
+    const content = await this.fs.promises.readFile("/template.yml", {
+      encoding: "utf8",
+    });
+    await this.typst.mapShadow(
+      "/template.yml",
+      new TextEncoder().encode(content)
+    );
+    // Sync in memory data object as well for form usage, this won't be done from here
+    // But for POC purposes, we will adjust with just re-rendering the resume preview
+    this.observers.forEach((observer) => observer(this.mainContent));
   }
 
   static async resetDocument() {

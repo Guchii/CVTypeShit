@@ -6,7 +6,7 @@ import React, {
   useState,
 } from "react";
 import { Button } from "./ui/button";
-import { Eye } from "lucide-react";
+import { Eye, MapPin } from "lucide-react";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import {
   documentAtom,
@@ -91,14 +91,14 @@ function ResumePreview() {
   }, [typstDocument, setLoaded]);
 
   const [eyeSaverMode, setEyeSaverMode] = useAtom(eyeSaverModeAtom);
-  console.log({pageCount})
+  console.log({ pageCount });
   return (
     <div className="h-[90%] w-auto bg-transparent aspect-[1224/1584] relative overflow-auto my-4 max-w-3xl mx-auto">
       <div
         ref={contentRef}
         style={
           {
-            "--svg-height-relative-to-container": `${pageCount*100}%`,
+            "--svg-height-relative-to-container": `${pageCount * 100}%`,
           } as CSSProperties
         }
         className={cn(
@@ -128,14 +128,22 @@ function ResumePreview() {
         )}
       </div>
       {!typstDocument.isTypstLoaded && <FlowerCredits />}
-      <div className="fixed top-4 right-6 z-[var(--z-header-bar)]">
+      <div className="fixed top-4 flex gap-2 items-center right-6 z-[var(--z-header-bar)]">
         <Button
           onClick={() => setEyeSaverMode((prev) => !prev)}
           variant="outline"
           size="sm"
         >
-          <Eye className="h-4 w-4 mr-2" />
+          <Eye className="h-4 w-4" />
           {eyeSaverMode ? "Disable Eye Saver" : "Enable Eye Saver"}
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => typstDocument.createCheckpoint().then(() => typstDocument.getCheckpoints())}
+        >
+          <MapPin className="h-4 w-4" />
+          Create Checkpoint
         </Button>
       </div>
     </div>
