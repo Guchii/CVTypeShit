@@ -150,9 +150,16 @@
 
     #if ("profiles" in info.personal) and (info.personal.profiles.len() > 0) {
         for profile in info.personal.profiles {
-            profiles.push(
-                box(link(profile.url)[#profile.url.split("//").at(1)])
-            )
+            if (profile.network != none) {
+                profiles.push(
+                    box(link(profile.url)[#profile.network])
+                )
+            } else {
+                profiles.push(
+                    box(link(profile.url)[#profile.url.split("//").at(1)])
+                )
+            }
+            
         }
     }
 

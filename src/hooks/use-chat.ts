@@ -2,7 +2,7 @@ import type React from "react";
 
 import { useState, useRef, useEffect, useCallback } from "react";
 
-import { useAtom, useAtomValue } from "jotai";
+import { atom, useAtom, useAtomValue } from "jotai";
 import { llmHandlerAtom } from "@/lib/atoms";
 
 import { atomWithStorage } from "jotai/utils";
@@ -23,6 +23,11 @@ export const messagesAtom = atomWithStorage<(CoreMessage | string)[]>("messages"
     content: SYSTEM_PROMPT(),
   },
 ]);
+
+export const messageCountAtom = atom((get) => {
+  const messages = get(messagesAtom) ?? [];
+  return messages.filter(m => typeof m === "object").length;
+})
 
 export type TLastAIMessage = {
     status: "loading" | "streaming" | "complete" | "error";

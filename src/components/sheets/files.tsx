@@ -27,8 +27,10 @@ export default function FilesSheet({
   const [activeFile, setActiveFile] = useState<string | null>(null);
   const messages = useAtomValue(messagesAtom);
 
+  const coreMessages = messages.filter(m => typeof m === "object");
+
   const displayMessages = useCallback(() => {
-    setActiveFile(JSON.stringify(messages.filter(m => m.role !== "system"), null, 2)); 
+    setActiveFile(JSON.stringify(coreMessages.filter(m => m.role !== "system"), null, 2)); 
   }, [messages]);
 
   const getFiles = useCallback(async () => {

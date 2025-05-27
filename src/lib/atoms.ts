@@ -272,6 +272,7 @@ export const isReadyToCompileAtom = atom(false);
 export const userSheetOpenAtom = atom(false);
 export const llmSheetOpenAtom = atom(false);
 export const filesSheetOpenAtom = atom(false);
+export const aboutSheetOpenAtom = atom(false);
 
 // Query Atoms
 export const modelsAtom = atomWithQuery((get) => {

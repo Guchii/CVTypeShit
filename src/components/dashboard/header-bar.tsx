@@ -5,6 +5,7 @@ import {
   DatabaseZap,
   DownloadIcon,
   Folders,
+  InfoIcon,
   LucideRefreshCcw,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -22,6 +23,7 @@ import {
   isReadyToCompileAtom,
   documentAtom,
   appLoadingAtom,
+  aboutSheetOpenAtom,
 } from "@/lib/atoms";
 import {
   AlertDialog,
@@ -35,14 +37,17 @@ import {
 } from "@/components/ui/alert-dialog";
 import { BaseTypstDocument } from "@/lib/base-typst";
 import { toast } from "sonner";
+import { messageCountAtom } from "@/hooks/use-chat";
 
 export const resetMessagesAlertAtom = atom(false);
 
 export default function HeaderBar() {
   const typstDocument = useAtomValue(documentAtom);
+  const messageCount = useAtomValue(messageCountAtom);
   const setUserSheetOpen = useSetAtom(userSheetOpenAtom);
   const setLlmSheetOpen = useSetAtom(llmSheetOpenAtom);
   const setFilesSheetOpen = useSetAtom(filesSheetOpenAtom);
+  const setAboutSheetOpen = useSetAtom(aboutSheetOpenAtom);
   const setResetMessagesAlert = useSetAtom(resetMessagesAlertAtom);
   const typstLoaded = useAtomValue(isReadyToCompileAtom);
 
@@ -127,6 +132,20 @@ export default function HeaderBar() {
         </TooltipTrigger>
         <TooltipContent>Start Over</TooltipContent>
       </Tooltip>
+      {(messageCount - 1) ? (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              onClick={() => setAboutSheetOpen(true)}
+              variant="outline"
+              size="icon"
+            >
+              <InfoIcon className="h-5 w-5" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>About App</TooltipContent>
+        </Tooltip>
+      ) : null}
     </div>
   );
 }
@@ -150,7 +169,7 @@ export const ResetAlertDialog = () => {
           <AlertDialogCancel>Cancel</AlertDialogCancel>
           <AlertDialogAction
             onClick={async () => {
-              setAppLoading(true)
+              setAppLoading(true);
               localStorage.removeItem("messages");
               await BaseTypstDocument.resetDocument();
               toast.info("Reloading in 3 seconds");

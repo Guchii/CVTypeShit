@@ -7,6 +7,7 @@ import LLMConfigSheet from "@/components/sheets/llm-config";
 import { TooltipProvider } from "./ui/tooltip";
 import { useAtom, useAtomValue } from "jotai";
 import {
+  aboutSheetOpenAtom,
   filesSheetOpenAtom,
   llmSheetOpenAtom,
   userSheetOpenAtom,
@@ -19,15 +20,21 @@ import HeaderBar, {
 } from "./dashboard/header-bar";
 import { cn } from "@/lib/utils";
 import AppLoader from "./app-loader";
+import AboutSheet from "./sheets/about";
 
 export default function Layout() {
   const [userSheetOpen, setUserSheetOpen] = useAtom(userSheetOpenAtom);
   const [llmSheetOpen, setLlmSheetOpen] = useAtom(llmSheetOpenAtom);
   const [filesSheetOpen, setFilesSheetOpen] = useAtom(filesSheetOpenAtom);
+  const [aboutSheetOpen, setAboutSheetOpen] = useAtom(aboutSheetOpenAtom);
   const resetMessageAlertOpen = useAtomValue(resetMessagesAlertAtom);
 
   const anySheetOpen =
-    userSheetOpen || llmSheetOpen || filesSheetOpen || resetMessageAlertOpen;
+    userSheetOpen ||
+    llmSheetOpen ||
+    filesSheetOpen ||
+    resetMessageAlertOpen ||
+    aboutSheetOpen;
 
   return (
     <TooltipProvider>
@@ -45,7 +52,7 @@ export default function Layout() {
           info: null,
           loading: null,
           success: null,
-          warning: null
+          warning: null,
         }}
       />
       <div
@@ -62,7 +69,7 @@ export default function Layout() {
           <ChatInterface />
         </div>
         <div className="bg-sidebar relative p-6 grid place-items-center">
-            <ResumePreview />
+          <ResumePreview />
         </div>
         <UserProfileSheet
           open={userSheetOpen}
@@ -70,6 +77,7 @@ export default function Layout() {
         />
         <LLMConfigSheet open={llmSheetOpen} onOpenChange={setLlmSheetOpen} />
         <FilesSheet open={filesSheetOpen} onOpenChange={setFilesSheetOpen} />
+        <AboutSheet open={aboutSheetOpen} onOpenChange={setAboutSheetOpen} />
       </div>
       <ResetAlertDialog />
     </TooltipProvider>

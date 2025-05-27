@@ -1,0 +1,25 @@
+import { userSheetOpenAtom } from "@/lib/atoms";
+import { useSetAtom } from "jotai";
+import GithubStar from "@/components/star";
+
+export function PopulateYourself() {
+  const setUserSheetOpen = useSetAtom(userSheetOpenAtom);
+  return (
+    <span
+      onClick={() => setUserSheetOpen(true)}
+      className="underline underline-offset-8 cursor-pointer"
+    >
+      populate the resume data yourself
+    </span>
+  );
+}
+
+# Resume Builder 
+
+## Build a sick resume in minutes!
+
+1. We have just a single no BS ATS Friendly template 
+2. Tell the assistant about yourself or paste a JD or <PopulateYourself />
+3. Click on the export pdf button on the top right to download your resume
+
+<GithubStar className="mb-4 underline-offset-8" />
