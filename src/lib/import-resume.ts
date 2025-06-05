@@ -6,10 +6,11 @@ import {
   TextItem,
   TextMarkedContent,
 } from "pdfjs-dist/types/src/display/api";
-import { documentAtom, llmHandlerAtom } from "./atoms";
+import { activeLLMProviderAtom, appLoadingAtom, documentAtom, llmHandlerAtom } from "./atoms";
 import { generateObject } from "ai";
 import { ResumeDataSchema } from "./types/resume-data";
 import { toast } from "sonner";
+import { inputAtom } from "@/hooks/use-chat";
 
 export class ImportResume {
   private PDFJS: typeof PDFJSType | undefined;
@@ -108,6 +109,7 @@ export class ImportResume {
     const llmHandler = store.get(llmHandlerAtom);
     const document = await store.get(documentAtom);
     try {
+      store.set(appLoadingAtom, true);
       const resumeData = await generateObject({
         mode: "json",
         model: llmHandler.model,
@@ -121,8 +123,26 @@ export class ImportResume {
       document.data = resumeData.object;
     } catch (error) {
       console.error(error);
-      toast.error("Failed to update resume data.");
+      toast.error("Failed to update resume data.", {
+        description: "Your input field will be populated with the extracted text.",
+      });
+      const provider = store.get(activeLLMProviderAtom);
+      if (provider === "pollinations") {
+        toast.error("Pollinations LLM provider is not supported for this operation.");
+      }
+      store.set(inputAtom, this.promptFromResumeString(this.extractedText));
     }
+    store.set(appLoadingAtom, false);
     toast.dismiss(id);
+  }
+
+  private promptFromResumeString(resumeString?: string): string {
+    if (!resumeString) {
+      return "";
+    }
+    return `
+      This is my resume data:
+      ${resumeString}
+    `.trim();
   }
 }

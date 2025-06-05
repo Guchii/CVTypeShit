@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { ArrowUp, AtSign, Square, Undo } from "lucide-react";
+import { ArrowUp, AtSign, ImportIcon, Square, Undo } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   PromptInput,
@@ -17,13 +17,13 @@ import {
 } from "@/lib/atoms";
 import { ChatMessageList } from "../ui/chat/chat-message-list";
 
-import { PromptSuggestion } from "../ui/prompt-suggestion";
 import { triggerImportResumeAtom } from "../sheets/user-profile";
 import ChatMessage from "./message";
 import Greeting from "../greeting.mdx";
 import useChat from "@/hooks/use-chat";
 import _ from "lodash";
 import LastAIMessage from "./last-ai-message";
+import ButtonWithAlert from "../ui/button-with-alert";
 
 export default function ChatInterface() {
   const typstDocument = useAtomValue(documentAtom);
@@ -58,21 +58,21 @@ export default function ChatInterface() {
     <div className="flex flex-col h-[calc(100vh)]">
       <div className="flex-1 overflow-y-auto p-2">
         <ChatMessageList smooth>
-          {messages.length - 1 === 0 && (
+          {messageCount - 1 === 0 && (
             <div className="mt-14 prose prose-invert prose-headings:m-0 prose-headings:mb-4 prose-li:text-white prose-img:m-0 prose-img:my-2">
               <Greeting />
             </div>
           )}
           {messages.map((message, i) =>
             _.isString(message) ? (
-              <Button
+              <ButtonWithAlert
                 size={"lg"}
                 variant={"outline"}
                 onClick={() => typstDocument.resetToCheckpoint(message)}
                 className="self-end"
               >
                 <Undo /> Checkpoint {message.substring(0, 5)}
-              </Button>
+              </ButtonWithAlert>
             ) : (
               <ChatMessage key={i} {...message} />
             )
@@ -81,17 +81,6 @@ export default function ChatInterface() {
         </ChatMessageList>
       </div>
       <div className="p-4 space-y-2">
-        {messageCount - 1 === 0 && (
-          <PromptSuggestion
-            onClick={() => {
-              triggerImportResume();
-            }}
-            disabled={!typstLoaded}
-            className="hover:border-ring rounded-md"
-          >
-            Import Resume
-          </PromptSuggestion>
-        )}
         <PromptInput
           value={input}
           onValueChange={setInput}
@@ -105,6 +94,19 @@ export default function ChatInterface() {
             disabled={isLoading || !typstLoaded}
           />
           <PromptInputActions className="justify-end pt-2">
+            <PromptInputAction
+              tooltip={"Import resume from PDF"}
+            >
+              <Button
+                variant="default"
+                size="icon"
+                className="h-8 w-8"
+                disabled={!typstLoaded}
+                onClick={() => triggerImportResume()}
+              >
+                <ImportIcon className="size-5" />
+              </Button>
+            </PromptInputAction>
             <PromptInputAction
               tooltip={`${llmConfig.provider}/${llmConfig.model}`}
             >

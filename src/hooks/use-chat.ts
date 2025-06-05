@@ -35,9 +35,11 @@ export type TLastAIMessage = {
     tool_calls: (ToolCallPart & { completed?: true })[];
   };
 
+export const inputAtom = atom("");
+
 export default function useChat({ tools }: { tools: ToolSet } = { tools: {} }) {
   const [messages, setMessages] = useAtom(messagesAtom);
-  const [input, setInput] = useState("");
+  const [input, setInput] = useAtom(inputAtom);
   const abortController = useRef<AbortController>(new AbortController());
 
   const [lastAIMessage, setLastAIMessage] = useState<TLastAIMessage>({

@@ -54,6 +54,11 @@ export default function Layout() {
           success: null,
           warning: null,
         }}
+        toastOptions={{
+          classNames: {
+            description: "text-white"
+          }
+        }}
       />
       <div
         className={cn(

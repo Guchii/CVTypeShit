@@ -37,7 +37,11 @@ export function ChatMessage(props: Props) {
 function UserMessage(props: CoreUserMessage) {
   if (typeof props.content === "string") {
     return (
-      <ChatBubbleMessage variant="sent" role="user">
+      <ChatBubbleMessage
+      style={{
+        boxShadow: "5px 5px 0 1px #ffffff30",
+      }}
+      variant="sent" role="user">
         {props.content}
       </ChatBubbleMessage>
     );
@@ -46,7 +50,11 @@ function UserMessage(props: CoreUserMessage) {
 
 function AssistantMessage(props: CoreAssistantMessage) {
   return (
-    <ChatBubbleMessage role="assistant">
+    <ChatBubbleMessage
+      style={{
+        boxShadow: "-5px 5px 0 1px #ffffff30",
+      }}
+    role="assistant">
       <div className="prose-base [&>*]:m-0 prose-ul:list-disc break-words whitespace-normal">
         {_.isArray(props.content) &&
           props.content.map((part, i) => {

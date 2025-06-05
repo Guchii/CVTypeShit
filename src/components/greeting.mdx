@@ -1,6 +1,8 @@
 import { userSheetOpenAtom } from "@/lib/atoms";
 import { useSetAtom } from "jotai";
 import GithubStar from "@/components/star";
+import { Github } from "lucide-react";
+import { buttonVariants } from './ui/button';
 
 export function PopulateYourself() {
   const setUserSheetOpen = useSetAtom(userSheetOpenAtom);
@@ -14,12 +16,14 @@ export function PopulateYourself() {
   );
 }
 
-# Resume Builder 
+# CVTypeShit
 
 ## Build a sick resume in minutes!
 
-1. We have just a single no BS ATS Friendly template 
+1. We have just one no-BS, ATS-friendly template
 2. Tell the assistant about yourself or paste a JD or <PopulateYourself />
 3. Click on the export pdf button on the top right to download your resume
 
-<GithubStar className="mb-4 underline-offset-8" />
+<a className={buttonVariants({ size: 'lg' })} style={{ textDecoration: 'none', }} href="https://github.com/shivom/resume-builder">
+  <Github className='inline' /> Contribute/Star/TypeShit
+</a>
