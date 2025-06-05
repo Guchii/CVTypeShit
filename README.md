@@ -1,54 +1,36 @@
-# React + TypeScript + Vite
+# CVTypeShit
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+**Build a sick resume in minutes.**
 
-Currently, two official plugins are available:
+CVTypeShit is a fast, no-BS resume builder powered by modern web tech. It uses Vite, Tailwind, [jq-web](https://github.com/fiatjaf/jq-web) for Resume data JSON transformations, and [Typst](https://typst.app) w/ [Typst.ts](https://github.com/Myriad-Dreamin/typst.ts?tab=readme-ov-file) to generate clean, ATS-friendly PDFs.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+Shoutout: [Pollinations AI](https://pollinations.ai/)
 
-## Expanding the ESLint configuration
+## Features
+- Simple Chat UI
+- One sleek, minimalist Typst resume template, [Check Check](github.com/jskherman/imprecv)
+- Live preview and instant export to PDF
+- No server side code (except all of those llm calls ofc)
+- Import existing PDF resumes (kind of works)
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+## Setup
+```
+bun install && bun dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Optional: Get an api key from https://openrouter.ai/keys or openai or any other openai compatible llm provider
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## Contributing
+- Fork the repo
+- Create a new branch: `git checkout -b feature/your-feature`
+- Make your changes
+- Commit: `git commit -m "feat: add your feature"`
+- Push: `git push origin feature/your-feature`
+- Open a Pull Request
 
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
-```
+## Guidelines
+- Keep the UX clean and minimal
+- PRs must pass basic build/test checks
+- Be kind in discussions
+
+
