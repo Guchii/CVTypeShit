@@ -6,6 +6,9 @@ CVTypeShit is a fast, no-BS resume builder powered by modern web tech. It uses V
 
 Shoutout: [Pollinations AI](https://pollinations.ai/)
 
+[![App Walkthrough](https://img.youtube.com/vi/rlLH3d9mVIg/0.jpg)](https://youtu.be/rlLH3d9mVIg)
+
+
 ## Features
 - Simple Chat UI
 - One sleek, minimalist Typst resume template, [Check Check](github.com/jskherman/imprecv)
