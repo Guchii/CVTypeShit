@@ -62,7 +62,8 @@ export class TypstDocument extends BaseTypstDocument {
   async fetchTemplateAndData() {
     logger.start(this.fetchTemplateAndData.name, this.templateName);
 
-    const templateResponse = await fetch(`/templates/${this.templateName}/main.typ`);
+    const base = import.meta.env.BASE_URL;
+    const templateResponse = await fetch(`${base}templates/${this.templateName}/main.typ`);
     let templateText = await templateResponse.text();
 
     if (templateText) {
@@ -70,7 +71,7 @@ export class TypstDocument extends BaseTypstDocument {
       templateText = templateText.replace(regex, "$1/");
     }
 
-    const dataResponse = await fetch(`/templates/${this.templateName}/template.yml`);
+    const dataResponse = await fetch(`${base}templates/${this.templateName}/template.yml`);
     const dataText = await dataResponse.text();
 
     // Writing to File System
