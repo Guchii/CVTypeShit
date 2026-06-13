@@ -8,6 +8,7 @@ import mdx from '@mdx-js/rollup';
 
 // https://vite.dev/config/
 export default defineConfig({
+  base: "/CVTypeShit/",
   plugins: [
     {enforce: 'pre', ...mdx()},
     react(),
